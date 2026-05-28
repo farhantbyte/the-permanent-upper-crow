@@ -94,9 +94,21 @@ Setting: black-on-black starfield (low-opacity white dots twinkling via opacity 
 - Rich crow: *"the under-crows can't follow us. new planet. we earned this."*
 - Tap to advance.
 
-### Screen 5 — *The Hat Shop (Again)*
+### Screen 5 — *The Arrival*
 
-Same layout as Screen 1, with bank balance and hat price both 100× higher (relative gap unchanged — the player still can't afford the hat, even after a generational windfall). Tapping advance re-enters Screen 1 of the next loop. Rich crow returns, identical pitch, with `"the window is closing — again."` on loop ≥ 2.
+Setting: the new planet. Faint twinkling starfield above a thin horizon line; the player crow stands alone on the ground. HUD shows the post-launch nest worth (`deriveLoopValues(loop + 1).balance`).
+
+The player crow speaks for the first time in the game, and crucially uses **proper sentence case** — the same businesscrow voice the rich crow uses. The grammar shift is the marker that the player has joined the upper class. Speaker label: `YOU`.
+
+- *"Finally... I can enjoy my money."*
+- *"..."*
+- *"I should probably buy some new clothes..."*
+
+After the last line, the crow walks off the right edge of the stage; the stars, ground, HUD, and dialogue cross-fade out under a black veil. The veil is bridged into the next mount by a body-level overlay owned by `main.ts` so the cut feels like a fade-back-in rather than a snap — the recursion is meant to feel hallucinatory, like a trip.
+
+### Loop — *The Hat Shop (Again)*
+
+Advancing past Screen 5 increments the loop counter, persists it via `saveLoop()`, refreshes the derived balance/hat price (×100), and re-mounts Screen 1. The player still cannot afford the hat — the gap held, even after a generational windfall. The new founder from the rotating cast appears with the same template pitch. Rich crow's opening swaps to `"the window is closing — again."` on loop ≥ 2 (deferred — not landed in this PR).
 
 ---
 
@@ -277,7 +289,7 @@ Every PR after scaffold gets sanity-checked at 375×812 (iPhone-class) in additi
 - [ ] **PR 4** — Screen 2: the factory
 - [ ] **PR 5** — Screen 3: the newscast
 - [ ] **PR 6** — Screen 4: the spaceship
-- [ ] **PR 7** — Loop wiring + Screen 5
+- [ ] **PR 7** — Loop wiring + Screen 5: the arrival
 - [ ] **PR 8** — Polish
 - [ ] Spec archived
 
@@ -384,17 +396,22 @@ Every PR after scaffold gets sanity-checked at 375×812 (iPhone-class) in additi
   - [ ] Reduced-motion: stars steady, ship still, crows pre-positioned at the ship
 - **Dependencies:** PR 5.
 
-### PR 7 — Loop wiring + Screen 5 (`feat/loop-recursion-and-escalation`)
+### PR 7 — Loop wiring + Screen 5: the arrival (`feat/loop-recursion-and-escalation`)
 
-- **Goal:** make the recursion real. Screen 4 advances back into the store with bumped numbers and visible escalation. This is where the satire lands.
+- **Goal:** make the recursion real. Add the arrival interstitial after the spaceship, then close the loop back to the hat shop with bumped numbers and a new founder. This is where the satire lands.
 - **Adds:**
-  - [ ] State: increment `loop` on screen-4 → screen-0 transition, persist via `saveLoop()`
-  - [ ] `deriveLoopValues(loop)` returns ×100 balance/price, monotonically
-  - [ ] Rich crow opening swaps to `"— again."` on loop ≥ 2
+  - [x] `src/screens/arrival.ts` — new planet stage (starfield + horizon + lone player crow), `YOU` dialogue in proper sentence case, walk-off + veil fade on advance
+  - [x] State: increment `loop` on arrival → store transition in `main.ts`, persist via `saveLoop()`, refresh derived balance/price from `deriveLoopValues`
+  - [x] Body-level `.loop-veil` owned by `main.ts` bridges arrival's black veil into the next mount so the cut feels like a fade-back-in (the "trip" continuity)
+  - [x] Remove `src/screens/placeholder.ts` — arrival replaces it as the fifth screen
+  - [x] `deriveLoopValues(loop)` returns ×100 balance/price, monotonically (already landed in PR 2; verified end-to-end here)
+  - [ ] Rich crow opening swaps to `"— again."` on loop ≥ 2 *(deferred — out of scope for this PR; can be folded into PR 8 or a small follow-up)*
 - **Acceptance:**
   - [ ] Hard refresh mid-loop-3 returns to screen 1 of loop 3 (not loop 1)
   - [ ] Clearing `localStorage` resets to loop 1
   - [ ] Numbers stay readable through loop 5 (no HUD pill overflow)
+  - [ ] Arrival → store transition fades through black (no hard snap)
+  - [ ] Reduced motion: stars steady, crow vanishes via opacity instead of translate
 - **Dependencies:** PR 6.
 
 ### PR 8 — Polish (`feat/polish-fonts-motion-share`)

@@ -1513,27 +1513,127 @@
   }
 }
 
-/* ── Placeholder screen ──────────────────────────────────────────── */
+/* ── Arrival screen (Screen 5) ───────────────────────────────────── */
 
-.screen-placeholder {
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 0.75rem;
+/* The crow has landed on the new planet. Auto-centred like the
+ * news and ship screens so the stage sits in the upper half of
+ * tall viewports with the dialogue under it. */
+.screen-arrival > .arrival-stage {
+  margin-top: auto;
 }
 
-.placeholder-title {
-  margin: 0;
-  font-family: var(--font-pixel);
-  font-size: 1.1rem;
-  letter-spacing: 0.15em;
-  color: var(--color-ink-soft);
+.screen-arrival > .dialogue-box {
+  margin-bottom: auto;
 }
 
-.placeholder-sub {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--color-ink-muted);
+.arrival-stage {
+  position: relative;
+  width: 100%;
+  max-width: 32rem;
+  margin-left: auto;
+  margin-right: auto;
+  height: 280px;
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.arrival-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.arrival-star {
+  position: absolute;
+  background: var(--color-ink);
+  border-radius: 50%;
+  opacity: 0;
+  animation: arrival-twinkle var(--dur, 4s) ease-in-out var(--delay, 0s)
+    infinite;
+  transition: opacity var(--veil-fade, 1.4s) ease;
+}
+
+@keyframes arrival-twinkle {
+  0%,
+  100% {
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* Horizon line — the new planet's ground. Faint so the crow
+ * stays the focal point. */
+.arrival-ground {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 8px;
+  height: 1px;
+  background: var(--color-ink-faint);
+  box-shadow: 0 0 12px var(--color-glow-mist);
+}
+
+.arrival-crow {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  transform: translateX(-50%);
+  transition: transform var(--walk-duration, 2.2s) cubic-bezier(0.4, 0, 0.6, 1);
+  will-change: transform;
+}
+
+/* On advance, the crow walks off the right edge of the stage,
+ * the stars and ground fade, the HUD dims, and the veil rises
+ * to full black. All durations are driven by the same CSS
+ * variables the JS-side timeouts read from. */
+.screen-arrival.walking .arrival-crow {
+  transform: translate(140%, 0);
+}
+
+.screen-arrival.walking .arrival-stars .arrival-star,
+.screen-arrival.walking .arrival-ground {
+  opacity: 0;
+}
+
+.screen-arrival.walking .hud-wrap,
+.screen-arrival.walking .dialogue-box {
+  opacity: 0;
+  transition: opacity var(--veil-fade, 1.4s) ease;
+  pointer-events: none;
+}
+
+.arrival-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: var(--color-surface);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--veil-fade, 1.4s) ease;
+}
+
+.screen-arrival.walking .arrival-veil {
+  opacity: 1;
+}
+
+/* Body-level veil owned by main.ts. Sits over the screen swap
+ * when looping back to the store so the cut from arrival's
+ * black to the freshly-mounted hat shop fades in instead of
+ * snapping. Self-removes after its opacity transition ends. */
+.loop-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--color-surface);
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity 900ms ease;
+}
+
+.loop-veil.fading {
+  opacity: 0;
 }
 
 /* ── Reduced motion ──────────────────────────────────────────────── */
@@ -1607,6 +1707,20 @@
 
   .ship-streak {
     animation: none;
+    opacity: 0;
+  }
+
+  .arrival-star {
+    animation: none;
+    opacity: 0.45;
+  }
+
+  .arrival-crow {
+    transition: opacity var(--veil-fade, 1.4s) ease;
+  }
+
+  .screen-arrival.walking .arrival-crow {
+    transform: translateX(-50%);
     opacity: 0;
   }
 }
