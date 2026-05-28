@@ -12,14 +12,14 @@ const NETWORK_NAME = 'Caw News Network';
 // Trisha's report — Caw News Network bills itself as an
 // independent newsroom, which the rest of her broadcast quietly
 // undermines: every story attributes the good news AND the bad
-// news to the current loop's company. ${company} rotates per
-// loop alongside the rest of the rich-crow cast.
-function makeNewsDialogue(company: string): readonly string[] {
+// news to the current loop's company. company + product rotate
+// per loop alongside the rest of the rich-crow cast.
+function makeNewsDialogue(company: string, product: string): readonly string[] {
   return [
     `Good evening. I'm ${REPORTER_NAME}, reporting live for ${NETWORK_NAME} — your independent voice.`,
     "Tonight's top story: under-crow riots have engulfed twelve districts. Casualties are climbing.",
     `${company} reports record Q3 earnings, beating every analyst expectation as the looting continues unabated.`,
-    `Analysts credit ${company}'s Robo-Crow rollout for an unprecedented productivity surge — and an unprecedented surge in under-crow violence.`,
+    `Analysts credit ${company}'s ${product} rollout for an unprecedented productivity surge — and an unprecedented surge in under-crow violence.`,
     `Food prices are up 312% year over year. ${company} has issued a statement assuring viewers that this is, quote, "fine".`,
     'The under-crows have stormed the lobby. I can hear them breaking down the studio door. We will not be covering this.',
     'Back to you.',
@@ -32,15 +32,17 @@ function makeNewsDialogue(company: string): readonly string[] {
 // touches the desk top instead of floating.
 const MIC_SVG = `<svg viewBox="0 0 14 42" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M7 0C10.31 0 13 3.13 13 7L13 13C13 16.87 10.31 20 7 20C3.69 20 1 16.87 1 13L1 7C1 3.13 3.69 0 7 0ZM6 20L8 20L8 38L11 38L11 42L3 42L3 38L6 38Z"/><path fill="none" stroke="rgba(0,0,0,0.65)" stroke-width="0.9" stroke-linecap="round" d="M2.5 6L11.5 6M1.5 10L12.5 10M2.5 14L11.5 14"/></svg>`;
 
-const CHYRON_STRINGS: readonly string[] = [
-  '12 DISTRICTS ABLAZE',
-  'UNDER-CROWS RIOTING',
-  'ROBO-CROW Q3 EARNINGS BEAT',
-  'FOOD PRICES UP 312% Y/Y',
-  'CITY HALL OVERRUN',
-  'STATE OF EMERGENCY DECLARED',
-  'STUDIO LOBBY BREACHED',
-];
+function makeChyronStrings(product: string): readonly string[] {
+  return [
+    '12 DISTRICTS ABLAZE',
+    'UNDER-CROWS RIOTING',
+    `${product.toUpperCase()} Q3 EARNINGS BEAT`,
+    'FOOD PRICES UP 312% Y/Y',
+    'CITY HALL OVERRUN',
+    'STATE OF EMERGENCY DECLARED',
+    'STUDIO LOBBY BREACHED',
+  ];
+}
 const CHYRON_INTERVAL_MS = 1800;
 const DIALOGUE_START_DELAY_MS = 700;
 
@@ -65,7 +67,8 @@ export const newsScreen: Screen = {
     const nextBalance = deriveLoopValues(ctx.state.loop + 1).balance;
 
     const cast = getRichCast(ctx.state.loop);
-    const newsLines = makeNewsDialogue(cast.company);
+    const newsLines = makeNewsDialogue(cast.company, cast.product);
+    const chyronStrings = makeChyronStrings(cast.product);
 
     const root = document.createElement('div');
     root.classList.add('screen', 'screen-news');
@@ -105,7 +108,7 @@ export const newsScreen: Screen = {
     chyronLabel.textContent = 'BREAKING';
     const chyronText = document.createElement('span');
     chyronText.classList.add('news-chyron-text');
-    chyronText.textContent = CHYRON_STRINGS[0];
+    chyronText.textContent = chyronStrings[0];
     chyron.append(chyronLabel, chyronText);
 
     tvScreen.append(live, scene, chyron);
@@ -135,8 +138,8 @@ export const newsScreen: Screen = {
     // Chyron cycler.
     let chyronIdx = 0;
     const chyronTimer = window.setInterval(() => {
-      chyronIdx = (chyronIdx + 1) % CHYRON_STRINGS.length;
-      chyronText.textContent = CHYRON_STRINGS[chyronIdx];
+      chyronIdx = (chyronIdx + 1) % chyronStrings.length;
+      chyronText.textContent = chyronStrings[chyronIdx];
     }, CHYRON_INTERVAL_MS);
 
     // Timer / animation handles for cleanup.

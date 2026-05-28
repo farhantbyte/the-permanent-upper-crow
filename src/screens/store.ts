@@ -23,15 +23,17 @@ const TABLE_SVG = `<svg viewBox="0 0 70 32" xmlns="http://www.w3.org/2000/svg" a
 function makeRichDialogue({
   name,
   company,
+  product,
 }: {
   name: string;
   company: string;
+  product: string;
 }): readonly string[] {
   return [
     `Why hello there! I'm ${name}, Founder and CEO of ${company}.`,
     "It seems you're having... some trouble with that purchase.",
     'What if I told you you could earn generational wealth with just a few years of hard work?',
-    `At ${company}, we produce the Robo-Crow. It is an autonomous robot that automates all labor in the e-kaw-nomy.`,
+    `At ${company}, we produce the ${product}. It is an autonomous robot that automates all labor in the e-kaw-nomy.`,
     'You would be wise to decide soon. We are running out of time before you become stuck with the under-crows.',
     'Equity in our venerable operation is anything but abundant.',
   ];
@@ -204,7 +206,7 @@ export const storeScreen: Screen = {
         <div class="contract-body">
           <p>The undersigned ("Employee") agrees to the following terms with ${cast.company} (the "Company"):</p>
           <ol class="contract-terms">
-            <li>Dedicate all labor, judgment, and waking hours to the development of Robo-Crow.</li>
+            <li>Dedicate all labor, judgment, and waking hours to the development of ${cast.product}.</li>
             <li>Maintain a 12/12/7 in-office presence at our San Franchickso headquarters.</li>
             <li>Receive complimentary lunch and dinner on premises (mandatory).</li>
             <li>Acknowledge that the window is closing.</li>

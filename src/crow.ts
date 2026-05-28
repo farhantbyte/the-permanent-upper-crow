@@ -32,8 +32,10 @@ const CROW_RICH_WINKING_SVG = `<svg viewBox="0 -16 100 160" xmlns="http://www.w3
 // palette (and matches `--color-error` elsewhere in the UI).
 const HEART_SVG = `<svg viewBox="0 0 7 6" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#ff3344" d="M1 0L3 0L3 1L1 1ZM4 0L6 0L6 1L4 1ZM0 1L7 1L7 3L0 3ZM1 3L6 3L6 4L1 4ZM2 4L5 4L5 5L2 5ZM3 5L4 5L4 6L3 6Z"/></svg>`;
 
-// Robo-Crow: the factory output the player ships. Same body
-// silhouette + two small antennas integrated into the path top,
+// Robo crow: the factory output the player ships. The marketing
+// label rotates per loop (see cast.ts `product`), but the visual
+// is always this same body — same silhouette as the standard crow
+// + two small antennas integrated into the path top,
 // SQUARE eye (= screen/visor), and two metal "straps" wrapping
 // the chest and lower body. Each strap is a slight trapezoid
 // (top edge narrower than bottom) so it tracks the body's curve

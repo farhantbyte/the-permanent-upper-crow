@@ -86,7 +86,7 @@ export const factoryScreen: Screen = {
       </div>
       <button type="button" class="factory-box-caution" aria-label="Warning details">⚠</button>
       <span class="factory-box-company">${cast.company.toUpperCase()}</span>
-      <span class="factory-box-product">ROBO CROW MACHINE</span>
+      <span class="factory-box-product">${cast.product.toUpperCase()} MACHINE</span>
     `;
     const cautionBtn = box.querySelector<HTMLButtonElement>(
       '.factory-box-caution',
