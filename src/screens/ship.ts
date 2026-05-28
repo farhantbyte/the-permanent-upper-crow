@@ -30,6 +30,14 @@ const STREAK_COUNT = 14;
 // the scene (vibration + stars) first.
 const DIALOGUE_START_DELAY_MS = 900;
 
+// Cabin-to-black fade after the captain's final line. The
+// arrival mount in main.ts picks up where this leaves off with
+// a body-level chapter card ("After arriving on the new
+// planet…"), so this just needs to land on solid black before
+// ctx.advance() hands off.
+const FADE_OUT_DURATION_MS = 800;
+const FADE_OUT_HOLD_MS = 120;
+
 function rand(min: number, max: number): number {
   return min + Math.random() * (max - min);
 }
@@ -105,12 +113,27 @@ export const shipScreen: Screen = {
     const dialogue = createDialogue({ speaker: CAPTAIN_SPEAKER });
     dialogue.el.classList.add('shown');
 
-    root.append(cabin, dialogue.el);
+    // Local veil that closes over the cabin when the captain
+    // finishes speaking. Paired with the body-level chapter card
+    // spawned by main.ts on the ship → arrival hop.
+    const veil = document.createElement('div');
+    veil.classList.add('ship-veil');
+
+    root.append(cabin, dialogue.el, veil);
     host.appendChild(root);
 
+    let advanceTimer: number | null = null;
+
     dialogue.onAdvance(() => {
-      ctx.advance();
+      dialogue.setActive(false);
+      root.classList.add('fading-out');
+      advanceTimer = window.setTimeout(() => {
+        advanceTimer = null;
+        ctx.advance();
+      }, FADE_OUT_DURATION_MS + FADE_OUT_HOLD_MS);
     });
+
+    root.style.setProperty('--ship-fade', `${FADE_OUT_DURATION_MS}ms`);
 
     const startTimer = window.setTimeout(() => {
       dialogue.play(CAPTAIN_LINES);
@@ -122,6 +145,7 @@ export const shipScreen: Screen = {
     return () => {
       stopShip();
       window.clearTimeout(startTimer);
+      if (advanceTimer !== null) window.clearTimeout(advanceTimer);
       dialogue.cleanup();
       root.remove();
     };

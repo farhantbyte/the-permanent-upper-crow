@@ -54,8 +54,7 @@ export const arrivalScreen: Screen = {
     hudWrap.appendChild(createHud({ balance: nextBalance }));
 
     // Stage: starfield in the upper half (we just landed —
-    // unfamiliar sky), ground line across the middle, player crow
-    // standing on it.
+    // unfamiliar sky), player crow floating on the surface.
     const stage = document.createElement('div');
     stage.classList.add('arrival-stage');
 
@@ -76,14 +75,11 @@ export const arrivalScreen: Screen = {
       stars.appendChild(star);
     }
 
-    const ground = document.createElement('div');
-    ground.classList.add('arrival-ground');
-
     const crowWrap = document.createElement('div');
     crowWrap.classList.add('arrival-crow');
     crowWrap.appendChild(createCrow('player'));
 
-    stage.append(stars, ground, crowWrap);
+    stage.append(stars, crowWrap);
 
     const dialogue = createDialogue({ speaker: PLAYER_SPEAKER });
     dialogue.el.classList.add('shown');
@@ -113,10 +109,19 @@ export const arrivalScreen: Screen = {
       }, WALK_DURATION_MS + VEIL_HOLD_MS);
     });
 
+    // When entering from the ship's chapter-card transition,
+    // ctx.entryDelayMs covers the time the interstitial veil is
+    // still over the screen. We extend the natural beat past
+    // that so the captain's voice-blips don't fire under black.
+    const entryDelay = ctx.entryDelayMs ?? 0;
+    const dialogueStartMs = Math.max(
+      DIALOGUE_START_DELAY_MS,
+      entryDelay + 300,
+    );
     startTimer = window.setTimeout(() => {
       startTimer = null;
       dialogue.play(ARRIVAL_LINES);
-    }, DIALOGUE_START_DELAY_MS);
+    }, dialogueStartMs);
 
     // CSS variables consumed by the keyframes / transitions in
     // index.css. Centralised here so the timings stay in sync

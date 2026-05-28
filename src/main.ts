@@ -27,6 +27,30 @@ function spawnLoopVeil(): void {
   veil.addEventListener('transitionend', () => veil.remove(), { once: true });
 }
 
+// Body-level chapter card that bridges the ship → arrival hop.
+// Spawns at full black with a single line of text, holds, then
+// fades out revealing the freshly-mounted arrival screen. Ship
+// fades to black on its own first, so the handoff has no flash.
+// Hold + fade is also passed to arrival as ctx.entryDelayMs so
+// its dialogue doesn't start streaming under the veil.
+const INTERSTITIAL_HOLD_MS = 1300;
+const INTERSTITIAL_FADE_MS = 1400;
+
+function spawnInterstitial(text: string): void {
+  const veil = document.createElement('div');
+  veil.classList.add('interstitial-veil');
+  veil.style.setProperty('--interstitial-fade', `${INTERSTITIAL_FADE_MS}ms`);
+  const textEl = document.createElement('div');
+  textEl.classList.add('interstitial-veil-text');
+  textEl.textContent = text;
+  veil.appendChild(textEl);
+  document.body.appendChild(veil);
+  window.setTimeout(() => {
+    veil.classList.add('fading');
+    veil.addEventListener('transitionend', () => veil.remove(), { once: true });
+  }, INTERSTITIAL_HOLD_MS);
+}
+
 // Audio contexts are blocked until the first user gesture.
 // Resume on whatever the player does first — click, tap, key.
 const unlock = () => {
@@ -94,6 +118,8 @@ let cleanup: (() => void) | null = null;
 let currentIdx = 0;
 
 function mount(idx: number): void {
+  const fromIdx = currentIdx;
+  let entryDelayMs = 0;
   // Past the last screen — close the loop. Bump the counter,
   // persist it, refresh the derived balance/price, and land at
   // the store again. The new founder, the ×100 prices, and the
@@ -110,6 +136,15 @@ function mount(idx: number): void {
     // in rather than snapping — same effect the manual reset
     // button reuses.
     spawnLoopVeil();
+  } else if (fromIdx === 3 && idx === 4) {
+    // Ship → arrival. Ship has already faded to black; this
+    // chapter card holds over the screen swap so the new planet
+    // doesn't snap into view. Tell arrival to defer its dialogue
+    // until the veil is fully gone — otherwise voice blips fire
+    // under the black and the player can hear text they can't
+    // yet read.
+    spawnInterstitial('On the new planet...');
+    entryDelayMs = INTERSTITIAL_HOLD_MS + INTERSTITIAL_FADE_MS;
   }
   const next = screens[idx];
   if (cleanup) cleanup();
@@ -122,6 +157,7 @@ function mount(idx: number): void {
   const ctx: GameContext = {
     state,
     advance: () => mount(currentIdx + 1),
+    entryDelayMs,
   };
   cleanup = next.mount(app!, ctx);
 }

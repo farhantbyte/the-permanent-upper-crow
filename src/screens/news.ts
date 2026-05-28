@@ -49,7 +49,7 @@ const SCENE_FADE_MS = 500;
 const COUNTER_DURATION_MS = 1500;
 // Sit on the final value for a beat after the celebratory pulse
 // before fading out — gives the player time to read the number.
-const POST_COUNTER_HOLD_MS = 3500;
+const POST_COUNTER_HOLD_MS = 2200;
 const FINAL_FADE_MS = 500;
 
 function easeOutCubic(t: number): number {
