@@ -8,6 +8,10 @@ While the game tells a grim story, my goal with this is to show how ridiculous t
 
 Ironically, this piece is completely vibe-coded as you can tell by the commit history. I was nothing but a creative art director here, if even that.
 
+Here's the [Hacker News post](https://news.ycombinator.com/item?id=48310280). Please give it an upvote to spread the message.
+
+Cheers love!
+
 ## Running The Permanent Upper Crow Locally
 
 ```sh
