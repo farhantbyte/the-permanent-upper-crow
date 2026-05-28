@@ -1313,6 +1313,206 @@
   }
 }
 
+/* ── Ship screen (Screen 4) ──────────────────────────────────────── */
+
+/* FPV cabin: a round porthole sits inside a bulkhead frame, with
+ * the captain's dialogue below. Cabin + dialogue auto-center
+ * vertically on tall viewports so the porthole sits in the
+ * upper half with the dialogue right beneath. */
+.screen-ship > .ship-cabin {
+  margin-top: auto;
+}
+
+.screen-ship > .dialogue-box {
+  margin-bottom: auto;
+}
+
+.ship-cabin {
+  position: relative;
+  width: 100%;
+  max-width: 32rem;
+  margin-left: auto;
+  margin-right: auto;
+  aspect-ratio: 1 / 1;
+  padding: 18px;
+  box-sizing: border-box;
+  background:
+    radial-gradient(
+      circle at 50% 30%,
+      rgba(255, 255, 255, 0.04),
+      transparent 60%
+    ),
+    linear-gradient(to bottom, #0a0a0a, #050505);
+  border: 1px solid var(--color-ink-trace);
+  border-radius: 14px;
+  /* Whole cabin trembles to convey thrust. Small amplitude so the
+   * dialogue text below (separate element) doesn't get illegible.
+   * 7-step keyframe + irrational duration breaks any visible
+   * periodicity. */
+  animation: ship-vibrate 0.21s linear infinite;
+}
+
+.ship-port {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 4px solid var(--color-ink-soft);
+  box-shadow:
+    inset 0 0 0 2px var(--color-ink-faint),
+    inset 0 0 22px rgba(0, 0, 0, 0.85),
+    0 0 14px rgba(0, 0, 0, 0.65);
+  overflow: hidden;
+  background: #000;
+}
+
+.ship-port-inner {
+  position: absolute;
+  inset: 0;
+}
+
+.ship-stars,
+.ship-streaks,
+.ship-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ship-star {
+  position: absolute;
+  background: var(--color-ink);
+  border-radius: 50%;
+  opacity: 0;
+  animation: ship-twinkle var(--dur, 3s) ease-in-out var(--delay, 0s) infinite;
+}
+
+@keyframes ship-twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+/* Forward-motion streaks: a short white trail starts at the
+ * center, rotates to its assigned angle, then translates "up"
+ * along its own rotated Y axis — which means radially outward.
+ * The trail also scales up in length as it travels, so far-away
+ * stars look like they're rushing past the viewer. */
+.ship-streak {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 14px;
+  margin-left: -1px;
+  margin-top: -7px;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0),
+    var(--color-ink) 90%
+  );
+  opacity: 0;
+  animation: ship-streak-out var(--dur, 2s) linear var(--delay, 0s) infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes ship-streak-out {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--angle, 0deg)) translateY(0) scaleY(0.25);
+  }
+  12% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angle, 0deg)) translateY(-60vh) scaleY(6);
+  }
+}
+
+.ship-hud-label {
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-pixel);
+  font-size: 0.55rem;
+  letter-spacing: 0.22em;
+  color: var(--color-ink-muted);
+  text-shadow: 0 0 6px var(--color-glow-mist);
+  white-space: nowrap;
+}
+
+.ship-hud-corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: var(--color-ink-faint);
+  border-style: solid;
+  border-width: 0;
+}
+
+.ship-hud-tl {
+  top: 14%;
+  left: 14%;
+  border-top-width: 1px;
+  border-left-width: 1px;
+}
+
+.ship-hud-tr {
+  top: 14%;
+  right: 14%;
+  border-top-width: 1px;
+  border-right-width: 1px;
+}
+
+.ship-hud-bl {
+  bottom: 14%;
+  left: 14%;
+  border-bottom-width: 1px;
+  border-left-width: 1px;
+}
+
+.ship-hud-br {
+  bottom: 14%;
+  right: 14%;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
+
+/* Cabin tremble — sub-pixel offsets at irrational steps. Should
+ * feel like sustained engine vibration, not an earthquake. */
+@keyframes ship-vibrate {
+  0% {
+    transform: translate(0, 0);
+  }
+  14% {
+    transform: translate(-0.4px, 0.3px);
+  }
+  28% {
+    transform: translate(0.5px, -0.2px);
+  }
+  42% {
+    transform: translate(-0.3px, 0.5px);
+  }
+  56% {
+    transform: translate(0.4px, 0.1px);
+  }
+  70% {
+    transform: translate(-0.2px, -0.4px);
+  }
+  84% {
+    transform: translate(0.3px, 0.3px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
 /* ── Placeholder screen ──────────────────────────────────────────── */
 
 .screen-placeholder {
@@ -1394,5 +1594,19 @@
 
   .store-hat svg {
     filter: drop-shadow(0 0 6px var(--color-glow-soft));
+  }
+
+  .ship-cabin {
+    animation: none;
+  }
+
+  .ship-star {
+    animation: none;
+    opacity: 0.6;
+  }
+
+  .ship-streak {
+    animation: none;
+    opacity: 0;
   }
 }

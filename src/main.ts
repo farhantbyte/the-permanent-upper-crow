@@ -4,17 +4,19 @@ import type { GameContext, Screen } from './screens/types';
 import { storeScreen } from './screens/store';
 import { factoryScreen } from './screens/factory';
 import { newsScreen } from './screens/news';
+import { shipScreen } from './screens/ship';
 import { placeholderScreen } from './screens/placeholder';
 
 const app = document.getElementById('app');
 if (!app) throw new Error('#app not found');
 
-// Screens are mounted in order. Placeholder stands in for Screen
-// 4 until PR 6 (the spaceship) replaces it.
+// Screens are mounted in order. Placeholder now stands in for
+// Screen 5 (the hat shop again) until PR 7 wires the loop.
 const screens: Screen[] = [
   storeScreen,
   factoryScreen,
   newsScreen,
+  shipScreen,
   placeholderScreen,
 ];
 
