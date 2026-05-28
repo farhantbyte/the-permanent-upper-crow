@@ -348,6 +348,63 @@
   border-color: var(--color-ink-trace);
 }
 
+/* Fake "buy me a cawfee" tip jar. Icon + label sit side by side
+ * so the joke is obvious — pure icon would just read as another
+ * generic chip. Vertical padding is trimmed by ~1px vs the
+ * icon-only chips so the labeled chip lands at the same height
+ * as its siblings in the stack. */
+.btn-cawfee {
+  gap: 0.35rem;
+  padding: 0.22rem 0.55rem;
+  line-height: 1;
+}
+
+.btn-cawfee-label {
+  font-family: var(--font-pixel);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  color: var(--color-ink-soft);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Toast that appears under the corner stack when the cawfee chip
+ * is tapped. Red palette + denied thud so it reads as rejection
+ * — same visual grammar as the INSUFFICIENT FUNDS flash. Pinned
+ * to the right under the safe-area inset; z-index keeps it just
+ * below the corner stack so it never visually overlaps the chips. */
+.cawfee-toast {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 3.1rem);
+  right: calc(env(safe-area-inset-right, 0px) + 0.6rem);
+  z-index: 59;
+  max-width: min(26rem, calc(100vw - 1.2rem));
+  padding: 0.55rem 0.75rem;
+  font-family: var(--font-pixel);
+  font-size: 0.7rem;
+  line-height: 1.45;
+  letter-spacing: 0.05em;
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+  background: rgba(0, 0, 0, 0.85);
+  text-shadow:
+    0 0 6px var(--color-error-glow),
+    0 0 12px var(--color-error-glow);
+  text-align: right;
+  text-wrap: balance;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 260ms ease,
+    transform 260ms ease;
+}
+
+.cawfee-toast.shown {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* ── Screen layout ───────────────────────────────────────────────── */
 
 .screen {

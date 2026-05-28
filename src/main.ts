@@ -1,5 +1,5 @@
 import './index.css';
-import { unlockAudio } from './audio';
+import { playDenied, unlockAudio } from './audio';
 import { deriveLoopValues, loadLoop, saveLoop, type GameState } from './state';
 import type { GameContext, Screen } from './screens/types';
 import { storeScreen } from './screens/store';
@@ -8,6 +8,7 @@ import { newsScreen } from './screens/news';
 import { shipScreen } from './screens/ship';
 import { arrivalScreen } from './screens/arrival';
 import {
+  createCawfeeButton,
   createGithubLink,
   createMuteButton,
   createResetButton,
@@ -159,6 +160,11 @@ function mount(idx: number): void {
   // hat shop on a later loop. Hide it on every other screen, and
   // on loop 1 where there is nothing to reset.
   resetBtn.style.display = idx === 0 && state.loop > 1 ? '' : 'none';
+  // Fake tip jar — only meaningful on the store screen where the
+  // HUD is visible to double; everywhere else it's hidden. Also
+  // dismiss any lingering toast when leaving the home screen.
+  cawfeeBtn.style.display = idx === 0 ? '' : 'none';
+  if (idx !== 0) dismissCawfeeToast();
   const ctx: GameContext = {
     state,
     advance: () => mount(currentIdx + 1),
@@ -185,6 +191,49 @@ const resetBtn = createResetButton(() => {
 });
 resetBtn.style.display = 'none';
 cornerStack.appendChild(resetBtn);
+
+// Fake "buy me a cawfee" tip jar. The joke: tapping it does
+// nothing useful — just pops a red "you are too broke to be
+// helping others right now" toast with the denied thud. Only
+// shown on the store screen so it sits in frame with the HUD it
+// refuses to spend from.
+let cawfeeToast: HTMLElement | null = null;
+let cawfeeToastTimer: number | null = null;
+const CAWFEE_TOAST_MS = 2400;
+
+function dismissCawfeeToast(): void {
+  if (cawfeeToastTimer !== null) {
+    window.clearTimeout(cawfeeToastTimer);
+    cawfeeToastTimer = null;
+  }
+  cawfeeToast?.classList.remove('shown');
+}
+
+function showCawfeeToast(): void {
+  if (!cawfeeToast) {
+    cawfeeToast = document.createElement('div');
+    cawfeeToast.classList.add('cawfee-toast');
+    cawfeeToast.textContent =
+      'you are too broke to be helping others right now';
+    document.body.appendChild(cawfeeToast);
+  }
+  if (cawfeeToastTimer !== null) window.clearTimeout(cawfeeToastTimer);
+  // Restart the fade-in transition on repeat taps.
+  cawfeeToast.classList.remove('shown');
+  void cawfeeToast.offsetWidth;
+  cawfeeToast.classList.add('shown');
+  cawfeeToastTimer = window.setTimeout(() => {
+    cawfeeToast?.classList.remove('shown');
+    cawfeeToastTimer = null;
+  }, CAWFEE_TOAST_MS);
+}
+
+const cawfeeBtn = createCawfeeButton(() => {
+  showCawfeeToast();
+  playDenied();
+});
+cawfeeBtn.style.display = 'none';
+cornerStack.appendChild(cawfeeBtn);
 cornerStack.appendChild(
   createWebsiteLink(
     'https://www.jasonwu.ink/signals/2026-05-27-permanent-upper-class?theme=dark',
