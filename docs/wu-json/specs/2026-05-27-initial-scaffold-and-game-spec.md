@@ -46,16 +46,21 @@ Setting: player-crow next to a display table. Top hat sits on the table (same ha
   - *"At ${company}, we produce the Robo-Crow. It is an autonomous robot that automates all labor in the e-kaw-nomy."*
   - *"You must decide soon. We are running out of time before you become stuck with the under-crows."*
   - *"Equity in our venerable operation is anything but abundant."*
-- After the last line, an **Employment Agreement popup** fades in over the scene (modal with a dimmed backdrop). The card carries the current loop's company name (`Crow Automation Systems`, `Caw Labs`, etc.), six numbered legalese terms ("Dedicate all labor, judgment, and waking hours to the development of Robo-Crow.", "Maintain a 12/12/7 in-office presence at our San Franchickso headquarters.", "Receive complimentary lunch and dinner on premises (mandatory).", "Acknowledge that the window is closing.", "Accept 1% equity in the Company, which the Company affirms is anything but abundant.", "Forfeit the right to wonder if there was another way."), two signature lines (Employee · ${name}, Founder & CEO), and `[ decline ]` / `[ sign ]` at the bottom. `[ decline ]` is a fake exit: each tap surfaces a different first-person reminder under the buttons (`"rent is due next month."`, `"mama crow is in the hospital remember."`, etc., ~10 lines, loops indefinitely). Only `[ sign ]` actually signs the contract. The performative refusal *is* the satire — you can perform declining indefinitely; nothing advances until you sign.
+- After the last line, an **Employment Agreement popup** fades in over the scene (modal with a dimmed backdrop). The card carries the current loop's company name (`Crow Automation Systems`, `Caw Labs`, etc.), six numbered legalese terms ("Dedicate all labor, judgment, and waking hours to the development of Robo-Crow.", "Maintain a 12/12/7 in-office presence at our San Franchickso headquarters.", "Receive complimentary lunch and dinner on premises (mandatory).", "Acknowledge that the window is closing.", "Accept 1% equity in the Company, which the Company affirms is anything but abundant.", "Forfeit the right to wonder if there was another way."), two signature lines (Employee · ${name}, Founder & CEO), and `[ decline ]` / `[ sign ]` at the bottom. Below the signatures, **§47B** is rendered as a 3-pixel-tall fine-print paragraph — physically unreadable without zooming — containing the binding 7-loop arbitration clause the factory warning popup later references ("The arbitrator is a crow. The arbitrator is unavailable. This section is unenforceable in any jurisdiction where it has been read."). `[ decline ]` is a fake exit: each tap surfaces a different first-person reminder under the buttons (`"rent is due next month."`, `"mama crow is in the hospital remember."`, etc., ~10 lines, loops indefinitely). Only `[ sign ]` actually signs the contract. The performative refusal *is* the satire — you can perform declining indefinitely; nothing advances until you sign.
 - Tap `[ sign ]` → contract fades out, dialogue box re-enables, and the rich crow delivers three celebratory follow-up lines in the same proper-sentence-case voice (`"Congratulations. I knew you weren't incompetent!"`, `"Cheers to a future of hard working fortune, and fortunate hard work."`, `"See you in the office on Sunday my love."`). Tap past the last line to advance to Screen 2.
 
 ### Screen 2 — *The Factory*
 
-Setting: rows of small dark crow silhouettes on a conveyor. Player-crow at a console. Rich crow at the frame's edge.
+Setting: a horizontal conveyor of Robo-Crow silhouettes moving across the frame. Player-crow at a console on the left. Rich crow (loop-rotating cast — Benjamin Peck on loop 1, etc.) at the right edge.
 
-- Tap `[ ship it ]` → conveyor animates (CSS transform only).
-- Rich crow: *"clean launch. we're so back. let's take it public."*
-- Auto-advance after a short beat. `[ skip ]` is available bottom-right on every story screen.
+- Tap `[ ship it ]` → conveyor begins translating (CSS transform only, no per-frame JS). Robo-Crows loop across the screen indefinitely.
+- The same streaming dialogue box as Screen 1 fades in after `[ ship it ]`. The rich crow loses composure for one beat, then recovers into proper-sentence-case businesscrow. Lines:
+  - *"KAWKAWKAKAWKAWKAKAW"*
+  - *"We are so back."*
+  - *"I can smell our investors gawking at these profits."*
+  - *"Our next quarter will crush those damn Eagles."*
+  - *"Great work. I'm looking forward to enjoying my— I mean our fortune very soon in our public offering."*
+- Tap past the last line to advance to Screen 3. The conveyor keeps moving the whole time.
 
 ### Screen 3 — *The Couch*
 
@@ -204,6 +209,15 @@ interface GameState {
 
 Only `loop` needs persisting; balance and price derive from it.
 
+### Dev affordances
+
+`main.ts` reads URL query params on load so you can jump straight into a screen without playing through:
+
+- `?screen=<0..3 | store | factory | couch | ship>` — mount that screen as the entry point
+- `?loop=<n>` — start at a specific loop (drives the rich-crow cast rotation and the ×100 number scaling, useful for testing later loops without grinding)
+
+Both are no-ops if absent; harmless to leave shipped in production.
+
 ### Bundle budget
 
 | Concern | Target |
@@ -318,15 +332,17 @@ Every PR after scaffold gets sanity-checked at 375×812 (iPhone-class) in additi
 
 ### PR 4 — Screen 2: the factory (`feat/screen-2-factory`)
 
-- **Goal:** launch beat. Conveyor of small crows, `[ ship it ]`, rich crow line, auto-advance.
+- **Goal:** launch beat. Conveyor of Robo-Crows, `[ ship it ]`, rich crow's five-line celebration in the same streaming dialogue box.
 - **Adds:**
-  - [ ] `src/screens/factory.ts` — console silhouette, conveyor row of 5–7 background crows that translate-X on `[ ship it ]`, rich crow at the edge
-  - [ ] Auto-advance ~1.2 s after the ship animation ends
-  - [ ] Replace the screen-2 placeholder from PR 3
+  - [x] `src/screens/factory.ts` — player crow + console (deferred for first pass — just the player crow on the left), Robo-Crow conveyor that translate-Xs on a continuous CSS loop after `[ ship it ]`, rich crow on the right edge (mirrored to face the conveyor)
+  - [x] Extract the streaming dialogue box from `src/screens/store.ts` into `src/dialogue.ts` (shared primitive `createDialogue({ speaker })` with `play(lines)` / `setActive(bool)` / `onAdvance(cb)`) and reuse it for the rich crow's five celebration lines
+  - [x] Extract the loop-rotating cast into `src/cast.ts` so both screens share it
+  - [x] Tap past the last line → advance to the next screen (placeholder in this PR)
+  - [x] Replace the "screen 2 — coming soon" placeholder from PR 3 (placeholder now stands in for Screen 3)
 - **Acceptance:**
-  - [ ] Conveyor runs via CSS transform, no per-frame JS
-  - [ ] `[ skip ]` jumps straight to the next placeholder
-  - [ ] Auto-advance respects reduced-motion (no jarring jump — still 1.2 s gate)
+  - [ ] Conveyor runs via CSS keyframes / transforms only, no per-frame JS
+  - [ ] Reduced-motion: conveyor pauses or moves slowly; dialogue still streams character-by-character at the same pace
+  - [ ] Bundle delta is small — most of the new code is the dialogue extraction, which is shared with Screen 1
 - **Dependencies:** PR 3.
 
 ### PR 5 — Screen 3: the couch (`feat/screen-3-couch`)

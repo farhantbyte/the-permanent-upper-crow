@@ -1,4 +1,6 @@
+import { getRichCast } from '../cast';
 import { createCrow } from '../crow';
+import { createDialogue } from '../dialogue';
 import { deriveLoopValues } from '../state';
 import { createHud, createPrimaryButton, formatMoney } from '../ui';
 import type { Screen } from './types';
@@ -13,31 +15,17 @@ const HAT_SVG = `<svg viewBox="0 0 30 24" xmlns="http://www.w3.org/2000/svg" ari
 // as the crow's feet. One continuous silhouette.
 const TABLE_SVG = `<svg viewBox="0 0 70 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M5 0L65 0L65 6L60 6L60 32L56 32L56 6L14 6L14 32L10 32L10 6L5 6Z"/></svg>`;
 
-// The rich crow rotates per loop — each iteration of the cycle
-// brings a new "founder" pitching the same scheme. Cast is
-// indexed by (loop - 1) modulo the list length.
-interface RichCast {
-  name: string;
-  company: string;
-}
-const RICH_CASTS: readonly RichCast[] = [
-  { name: 'Benjamin Peck', company: 'Crow Automation Systems' },
-  { name: 'Margaret Caw', company: 'Caw Labs' },
-  { name: 'Edgar Crowford', company: 'Crowford Ventures' },
-  { name: 'Olivia Beakerson', company: 'Beaknet' },
-  { name: 'Marcus Talon', company: 'Talonchain' },
-  { name: 'Felicity Plume', company: 'Plume Capital' },
-];
-
-function getRichCast(loop: number): RichCast {
-  return RICH_CASTS[(loop - 1) % RICH_CASTS.length];
-}
-
 // Benjamin Peck and his successors all deliver the same template
 // pitch in proper sentence case — the stilted-formal grammar is
 // the marker of corporate persona; every other voice in the game
 // stays lowercase.
-function makeRichDialogue({ name, company }: RichCast): readonly string[] {
+function makeRichDialogue({
+  name,
+  company,
+}: {
+  name: string;
+  company: string;
+}): readonly string[] {
   return [
     `Why hello there! I'm ${name}, Founder and CEO of ${company}.`,
     "It seems you're having... some trouble with that purchase.",
@@ -56,8 +44,6 @@ const POST_SIGN_DIALOGUE: readonly string[] = [
   'Cheers to a future of hard working fortune, and fortunate hard work.',
   'See you in the office on Sunday my love.',
 ];
-
-const STREAM_MS_PER_CHAR = 28;
 
 // First-person internal monologue surfaced when the player taps
 // [ decline ]. Each tap cycles to the next reminder of why the
@@ -78,8 +64,8 @@ const DECLINE_THOUGHTS: readonly string[] = [
 
 // Subtext that appears under INSUFFICIENT FUNDS once the player
 // has tapped the hat enough times to count as bargaining. Indexed
-// by (clickCount - HAT_CLICK_SUBTEXT_AT). Once the list is
-// exhausted, the last line sticks.
+// by (clickCount - HAT_CLICK_SUBTEXT_AT) modulo the list length —
+// loops indefinitely so the snark never runs out.
 const HAT_CLICK_SUBTEXT_AT = 6;
 const HAT_CLICK_SUBTEXT: readonly string[] = [
   "you've already maxed out your crow card.",
@@ -101,6 +87,27 @@ const HAT_CLICK_SUBTEXT: readonly string[] = [
   'your broke ass gets no finches.',
   'have you considered onlybirds?',
 ];
+
+const CONFETTI_COUNT = 26;
+const CONFETTI_COLORS = ['#ffffff', '#4ade80', '#ffd166'];
+
+function spawnConfetti(host: HTMLElement): void {
+  const burst = document.createElement('div');
+  burst.classList.add('confetti-burst');
+  burst.setAttribute('aria-hidden', 'true');
+  for (let i = 0; i < CONFETTI_COUNT; i += 1) {
+    const piece = document.createElement('span');
+    piece.classList.add('confetti-piece');
+    piece.style.setProperty('--dx', `${(Math.random() - 0.5) * 360}px`);
+    piece.style.setProperty('--dy', `${120 + Math.random() * 220}px`);
+    piece.style.setProperty('--rot', `${Math.random() * 720 - 360}deg`);
+    piece.style.background =
+      CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+    piece.style.animationDelay = `${Math.floor(Math.random() * 120)}ms`;
+    burst.appendChild(piece);
+  }
+  host.appendChild(burst);
+}
 
 export const storeScreen: Screen = {
   mount(host, ctx) {
@@ -150,7 +157,9 @@ export const storeScreen: Screen = {
 
     const richCol = document.createElement('div');
     richCol.classList.add('store-col', 'store-col-rich');
-    richCol.appendChild(createCrow('rich'));
+    const richCrow = createCrow('rich');
+    richCrow.classList.add('crow-mirrored');
+    richCol.appendChild(richCrow);
 
     const flash = document.createElement('div');
     flash.classList.add('insufficient-flash');
@@ -159,37 +168,16 @@ export const storeScreen: Screen = {
       <div class="insufficient-main">INSUFFICIENT FUNDS.</div>
       <div class="insufficient-sub"></div>
     `;
+    const flashMain = flash.querySelector<HTMLDivElement>('.insufficient-main')!;
     const flashSub = flash.querySelector<HTMLDivElement>('.insufficient-sub')!;
 
     stage.append(playerCol, displayCol, richCol, flash);
 
-    // Dialogue box — Animal-Crossing-style with speaker label,
-    // streaming text, and a bobbing ▼ continue indicator. Built
-    // inline here; promote to src/dialogue.ts when a second
-    // screen needs it.
-    const dialogueBox = document.createElement('div');
-    dialogueBox.classList.add('dialogue-box', 'reveal');
+    // Dialogue box (shared primitive)
+    const dialogue = createDialogue({ speaker: cast.name.toUpperCase() });
 
-    const dlgSpeaker = document.createElement('div');
-    dlgSpeaker.classList.add('dialogue-speaker');
-    dlgSpeaker.textContent = cast.name.toUpperCase();
-
-    const dlgBody = document.createElement('div');
-    dlgBody.classList.add('dialogue-body');
-
-    const dlgText = document.createElement('span');
-    dlgText.classList.add('dialogue-text');
-
-    const dlgIndicator = document.createElement('span');
-    dlgIndicator.classList.add('dialogue-indicator');
-    dlgIndicator.setAttribute('aria-hidden', 'true');
-    dlgIndicator.textContent = '▼';
-
-    dlgBody.append(dlgText, dlgIndicator);
-    dialogueBox.append(dlgSpeaker, dlgBody);
-
-    // CTA wrap only holds [ continue ] now — decline/accept moved
-    // into the contract popup that appears after the dialogue.
+    // CTA wrap only holds [ continue ] — decline/sign live in
+    // the contract popup.
     const cta = document.createElement('div');
     cta.classList.add('cta-wrap');
 
@@ -198,9 +186,9 @@ export const storeScreen: Screen = {
 
     cta.append(continueBtn);
 
-    // Contract popup — modal overlay revealed after Benjamin
-    // Peck's last line. Decline / accept live inside the card,
-    // and the decline-thought subtext sits below the buttons.
+    // Contract popup — modal overlay revealed after the rich
+    // crow's pitch. Decline / sign live inside the card; the
+    // decline-thought subtext sits below the buttons.
     const contract = document.createElement('div');
     contract.classList.add('contract-overlay', 'reveal');
     contract.setAttribute('role', 'dialog');
@@ -248,9 +236,17 @@ export const storeScreen: Screen = {
     contractThought.classList.add('contract-thought');
     contractThought.setAttribute('aria-live', 'polite');
 
-    contractCard.append(contractActions, contractThought);
+    // §47B fine print — physically unreadable. Lives at the very
+    // bottom of the card (below the buttons) so it reads as a
+    // legal footer.
+    const finePrint = document.createElement('p');
+    finePrint.classList.add('contract-fine-print');
+    finePrint.textContent =
+      '§47B. Arbitration. By signing, the Employee waives all rights to legal recourse and agrees to a 7-loop binding arbitration cycle with no recorded arbitrator. The arbitrator is a crow. The arbitrator is unavailable. This section is unenforceable in any jurisdiction where it has been read.';
 
-    root.append(hudWrap, stage, dialogueBox, cta, contract);
+    contractCard.append(contractActions, contractThought, finePrint);
+
+    root.append(hudWrap, stage, dialogue.el, cta, contract);
     host.appendChild(root);
 
     // Cascade
@@ -258,18 +254,15 @@ export const storeScreen: Screen = {
     //   beat 1 → 2: tap continue → rich crow slides in, dialogue
     //               box fades in and starts streaming the pitch
     //   beat 2 → 3: tap past last pitch line → contract popup
-    //   beat 3 → 2: tap sign → contract dismissed, dialogue box
-    //               re-enabled, post-sign lines start streaming
+    //   beat 3 → 2: tap sign → contract dismissed, flash turns
+    //               green ("CONGRATULATIONS..."), confetti bursts,
+    //               post-sign lines start streaming
     //   beat 2 → 4: tap past last post-sign line → ctx.advance()
     let beat: 0 | 1 | 2 | 3 = 0;
     let hatClicks = 0;
     let declineClicks = 0;
-
-    // The dialogue box drives two different scripts: the rich
-    // crow's pitch (pre-sign) and his celebratory follow-up
-    // (post-sign). `activeLines` swaps when [ sign ] is tapped.
-    let activeLines: readonly string[] = richLines;
     let signed = false;
+    let startDelayTimer: number | null = null;
 
     const onTapDecline = () => {
       declineClicks += 1;
@@ -288,10 +281,8 @@ export const storeScreen: Screen = {
       flash.classList.add('show');
 
       if (hatClicks >= HAT_CLICK_SUBTEXT_AT) {
-        const idx = Math.min(
-          hatClicks - HAT_CLICK_SUBTEXT_AT,
-          HAT_CLICK_SUBTEXT.length - 1,
-        );
+        const idx =
+          (hatClicks - HAT_CLICK_SUBTEXT_AT) % HAT_CLICK_SUBTEXT.length;
         flashSub.textContent = HAT_CLICK_SUBTEXT[idx];
         flashSub.classList.add('shown');
       }
@@ -304,85 +295,41 @@ export const storeScreen: Screen = {
       }
     };
 
-    // Streaming dialogue state
-    let dlgLineIdx = 0;
-    let dlgCharIdx = 0;
-    let streamTimer: number | null = null;
-    let streaming = false;
-    let startDelayTimer: number | null = null;
-
-    const onLineComplete = () => {
-      streaming = false;
-      streamTimer = null;
-      // Indicator stays up after every line, including the last —
-      // tapping past the last line is what reveals the contract.
-      dlgIndicator.classList.add('shown');
-    };
-
-    const streamLine = () => {
-      streaming = true;
-      dlgIndicator.classList.remove('shown');
-      dlgText.textContent = '';
-      dlgCharIdx = 0;
-      const line = activeLines[dlgLineIdx];
-
-      const tick = () => {
-        if (dlgCharIdx >= line.length) {
-          onLineComplete();
-          return;
-        }
-        dlgText.textContent = line.slice(0, dlgCharIdx + 1);
-        dlgCharIdx += 1;
-        streamTimer = window.setTimeout(tick, STREAM_MS_PER_CHAR);
-      };
-      tick();
-    };
-
-    const finishLine = () => {
-      if (streamTimer !== null) {
-        window.clearTimeout(streamTimer);
-        streamTimer = null;
-      }
-      dlgText.textContent = activeLines[dlgLineIdx];
-      dlgCharIdx = activeLines[dlgLineIdx].length;
-      onLineComplete();
-    };
-
-    const onTapDialogue = () => {
+    dialogue.onAdvance(() => {
       if (beat !== 2) return;
-      if (streaming) {
-        finishLine();
-      } else if (dlgLineIdx < activeLines.length - 1) {
-        dlgLineIdx += 1;
-        streamLine();
-      } else if (!signed) {
-        // Past the last pitch line — one more tap reveals the
-        // contract.
+      if (!signed) {
+        // Past the last pitch line — reveal the contract popup.
         beat = 3;
-        dialogueBox.classList.add('done');
-        dlgIndicator.classList.remove('shown');
+        dialogue.setActive(false);
         contract.classList.add('shown');
       } else {
-        // Past the last post-sign line — advance to the next
-        // screen.
+        // Past the last post-sign line — advance to next screen.
         ctx.advance();
       }
-    };
+    });
 
     const onTapSign = () => {
       if (beat !== 3) return;
       signed = true;
-      // Dismiss the contract, swap the dialogue script, re-enable
-      // dialogue taps, and start streaming after a brief beat so
-      // the contract has time to fade out cleanly.
       contract.classList.remove('shown');
-      activeLines = POST_SIGN_DIALOGUE;
-      dlgLineIdx = 0;
-      dialogueBox.classList.remove('done');
+
+      // Turn the persistent INSUFFICIENT FUNDS red flash into a
+      // green "CONGRATULATIONS ON (FUTURE YOU) BEING RICH" banner.
+      // The "(FUTURE YOU)" parenthetical is muted to underscore the
+      // satire — you're not rich now, that's for some other you.
+      flashMain.innerHTML =
+        'CONGRATULATIONS ON <span class="insufficient-aside">(FUTURE YOU)</span> BEING RICH';
+      flashSub.classList.remove('shown');
+      flash.classList.add('success');
+      spawnConfetti(flash);
+
+      // Swap the dialogue script and restart streaming after a
+      // brief beat so the contract has time to fade out.
+      dialogue.setActive(true);
       beat = 2;
       startDelayTimer = window.setTimeout(() => {
         startDelayTimer = null;
-        streamLine();
+        dialogue.play(POST_SIGN_DIALOGUE);
       }, 450);
     };
 
@@ -391,24 +338,22 @@ export const storeScreen: Screen = {
       beat = 2;
       stage.classList.add('rich-entered');
       continueBtn.classList.remove('shown');
-      dialogueBox.classList.add('shown');
+      dialogue.el.classList.add('shown');
       // Let the rich crow get partway into his entrance before
       // he starts talking — feels less like he's already standing
       // there mid-sentence.
       startDelayTimer = window.setTimeout(() => {
         startDelayTimer = null;
-        streamLine();
+        dialogue.play(richLines);
       }, 600);
     };
 
     display.addEventListener('click', onTapHat);
-    dialogueBox.addEventListener('click', onTapDialogue);
 
     return () => {
-      if (streamTimer !== null) window.clearTimeout(streamTimer);
       if (startDelayTimer !== null) window.clearTimeout(startDelayTimer);
       display.removeEventListener('click', onTapHat);
-      dialogueBox.removeEventListener('click', onTapDialogue);
+      dialogue.cleanup();
       root.remove();
     };
   },
