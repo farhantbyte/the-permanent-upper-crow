@@ -381,13 +381,14 @@
 /* Toast that appears under the corner stack when the cawfee chip
  * is tapped. Red palette + denied thud so it reads as rejection
  * — same visual grammar as the INSUFFICIENT FUNDS flash. Pinned
- * to the right under the safe-area inset; z-index keeps it just
- * below the corner stack so it never visually overlaps the chips. */
+ * to the right under the safe-area inset; z-index sits above the
+ * corner stack so when the chips wrap onto a second row on narrow
+ * viewports, the toast paints over them instead of getting clipped. */
 .cawfee-toast {
   position: fixed;
   top: calc(env(safe-area-inset-top, 0px) + 3.1rem);
   right: calc(env(safe-area-inset-right, 0px) + 0.6rem);
-  z-index: 59;
+  z-index: 61;
   max-width: min(26rem, calc(100vw - 1.2rem));
   padding: 0.55rem 0.75rem;
   font-family: var(--font-pixel);
