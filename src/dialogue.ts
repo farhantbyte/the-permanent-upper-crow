@@ -4,6 +4,14 @@
 // line, the registered `onAdvance` callback fires — what that
 // means is up to the caller (advance screen, show a popup, etc.).
 
+import { playAdvance, playBlip } from './audio';
+
+// Voice blips are emitted on alphanumeric characters only and
+// throttled to every Nth such char so a 28 ms/char stream
+// doesn't fuse into a single tone. Roughly one blip every
+// 90–100 ms feels close to AC's syllable cadence.
+const BLIP_EVERY_N_CHARS = 3;
+
 export interface DialogueHandle {
   /** The root DOM element. Caller is responsible for placement. */
   el: HTMLElement;
@@ -94,18 +102,26 @@ export function createDialogue(opts: DialogueOptions): DialogueHandle {
     indicator.classList.add('shown');
   };
 
+  let blipCounter = 0;
+
   const streamCurrent = () => {
     streaming = true;
     indicator.classList.remove('shown');
     text.textContent = '';
     charIdx = 0;
+    blipCounter = 0;
     const line = lines[lineIdx];
     const tick = () => {
       if (charIdx >= line.length) {
         onLineComplete();
         return;
       }
+      const ch = line[charIdx];
       text.textContent = line.slice(0, charIdx + 1);
+      if (/[a-z0-9]/i.test(ch)) {
+        if (blipCounter % BLIP_EVERY_N_CHARS === 0) playBlip();
+        blipCounter += 1;
+      }
       charIdx += 1;
       streamTimer = window.setTimeout(tick, msPerChar);
     };
@@ -130,9 +146,11 @@ export function createDialogue(opts: DialogueOptions): DialogueHandle {
       finishCurrent();
     } else if (lineIdx < lines.length - 1) {
       lineIdx += 1;
+      playAdvance();
       streamCurrent();
     } else {
       advanced = true;
+      playAdvance();
       advanceCb?.();
     }
   };

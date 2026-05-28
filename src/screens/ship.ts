@@ -1,3 +1,4 @@
+import { startSpaceship } from '../audio';
 import { createDialogue } from '../dialogue';
 import type { Screen } from './types';
 
@@ -15,7 +16,9 @@ const CAPTAIN_LINES: readonly string[] = [
   'On board this vessel is the entire permanent upper-crow class.',
   'The uncivilized violent under-crows could not follow us.',
   'Our destination is a fresh, untouched planet. There, we will finally live in peace.',
+  'We will be arriving shortly...',
   'We earned this.',
+  '...',
 ];
 
 // Visual budget — kept low because all of these are absolutely
@@ -113,7 +116,11 @@ export const shipScreen: Screen = {
       dialogue.play(CAPTAIN_LINES);
     }, DIALOGUE_START_DELAY_MS);
 
+    // Spaceship interior ambience under the captain's address.
+    const stopShip = startSpaceship();
+
     return () => {
+      stopShip();
       window.clearTimeout(startTimer);
       dialogue.cleanup();
       root.remove();

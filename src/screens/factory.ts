@@ -1,3 +1,4 @@
+import { startConveyor } from '../audio';
 import { getRichCast } from '../cast';
 import { createCrow } from '../crow';
 import { createDialogue } from '../dialogue';
@@ -152,9 +153,10 @@ export const factoryScreen: Screen = {
     )!;
     const warningActions = document.createElement('div');
     warningActions.classList.add('warning-actions');
-    warningActions.appendChild(
-      createPrimaryButton('understood', () => closeWarning()),
+    const understoodBtn = createPrimaryButton('understood', () =>
+      closeWarning(),
     );
+    warningActions.appendChild(understoodBtn);
     warningCard.appendChild(warningActions);
 
     root.append(hudWrap, scene, dialogue.el, warning);
@@ -166,6 +168,9 @@ export const factoryScreen: Screen = {
     };
     const closeWarning = () => {
       warning.classList.remove('shown');
+      // Drop focus off the button so subsequent Enter/Space
+      // hits the dialogue advance instead of the dismissed btn.
+      understoodBtn.blur();
       dialogue.setActive(true);
     };
     cautionBtn.addEventListener('click', openWarning);
@@ -218,7 +223,12 @@ export const factoryScreen: Screen = {
     };
     scheduleHelp(true);
 
+    // Faint conveyor-belt ambience under the whole screen. Stops
+    // (with a short fade) when the player advances away.
+    const stopConveyor = startConveyor();
+
     return () => {
+      stopConveyor();
       window.clearTimeout(startDelayTimer);
       if (helpTimer !== null) window.clearTimeout(helpTimer);
       cautionBtn.removeEventListener('click', openWarning);

@@ -186,6 +186,66 @@
   color: var(--color-ink-soft);
 }
 
+/* Persistent corner chips — reset on the top-left, mute on the
+ * top-right — both pinned to the viewport with safe-area-inset
+ * padding so on notched phones they sit below the status bar
+ * instead of under it. z-index 60 puts them above the loop-veil
+ * (z-index 50) so the player can always reach them. */
+.btn-corner {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 0.6rem);
+  z-index: 60;
+  appearance: none;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--color-ink-faint);
+  font-family: var(--font-pixel);
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color 200ms ease,
+    border-color 200ms ease,
+    opacity 200ms ease;
+}
+
+.btn-corner:hover,
+.btn-corner:focus-visible {
+  outline: 0;
+  color: var(--color-ink);
+  border-color: var(--color-ink-soft);
+}
+
+.btn-corner:active {
+  transform: translateY(1px);
+}
+
+.btn-reset {
+  left: calc(env(safe-area-inset-left, 0px) + 0.6rem);
+  padding: 0.3rem 0.55rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+}
+
+.btn-mute {
+  right: calc(env(safe-area-inset-right, 0px) + 0.6rem);
+  padding: 0.3rem 0.45rem;
+  line-height: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-mute svg {
+  display: block;
+  width: 20px;
+  height: auto;
+}
+
+.btn-mute.is-muted {
+  color: var(--color-ink-muted);
+  border-color: var(--color-ink-trace);
+}
+
 /* ── Screen layout ───────────────────────────────────────────────── */
 
 .screen {
@@ -755,7 +815,10 @@
   font-size: 0.72rem;
   letter-spacing: 0.05em;
   line-height: 1.4;
-  color: var(--color-ink-muted);
+  color: var(--color-error);
+  text-shadow:
+    0 0 6px var(--color-error-glow),
+    0 0 14px var(--color-error-glow);
   text-align: center;
   opacity: 0;
   transition: opacity 350ms ease;
@@ -1533,29 +1596,31 @@
   border-right-width: 1px;
 }
 
-/* Cabin tremble — sub-pixel offsets at irrational steps. Should
- * feel like sustained engine vibration, not an earthquake. */
+/* Cabin tremble — small whole-pixel offsets at irrational steps.
+ * Should feel like sustained engine vibration, not an earthquake.
+ * Earlier sub-pixel amplitudes barely rendered on hi-DPI displays;
+ * these are ~3× larger so the rattle is actually visible. */
 @keyframes ship-vibrate {
   0% {
     transform: translate(0, 0);
   }
   14% {
-    transform: translate(-0.4px, 0.3px);
+    transform: translate(-1.2px, 0.8px);
   }
   28% {
-    transform: translate(0.5px, -0.2px);
+    transform: translate(1.4px, -0.6px);
   }
   42% {
-    transform: translate(-0.3px, 0.5px);
+    transform: translate(-0.9px, 1.3px);
   }
   56% {
-    transform: translate(0.4px, 0.1px);
+    transform: translate(1.1px, 0.4px);
   }
   70% {
-    transform: translate(-0.2px, -0.4px);
+    transform: translate(-0.7px, -1.1px);
   }
   84% {
-    transform: translate(0.3px, 0.3px);
+    transform: translate(0.9px, 0.9px);
   }
   100% {
     transform: translate(0, 0);

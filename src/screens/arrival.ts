@@ -23,7 +23,7 @@ import type { Screen } from './types';
 const PLAYER_SPEAKER = 'YOU';
 
 const ARRIVAL_LINES: readonly string[] = [
-  'Finally... I can enjoy my money.',
+  'Finally... I can enjoy my wealth.',
   '...',
   'I should probably buy some new clothes...',
 ];

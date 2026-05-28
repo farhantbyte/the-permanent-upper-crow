@@ -1,3 +1,4 @@
+import { playCelebrate, playDenied } from '../audio';
 import { getRichCast } from '../cast';
 import { createCrow } from '../crow';
 import { createDialogue } from '../dialogue';
@@ -266,6 +267,7 @@ export const storeScreen: Screen = {
 
     const onTapDecline = () => {
       declineClicks += 1;
+      playDenied();
       const idx = (declineClicks - 1) % DECLINE_THOUGHTS.length;
       contractThought.textContent = DECLINE_THOUGHTS[idx];
       contractThought.classList.add('shown');
@@ -273,6 +275,7 @@ export const storeScreen: Screen = {
 
     const onTapHat = () => {
       hatClicks += 1;
+      playDenied();
 
       // Replay the entrance pulse on every tap; flash stays
       // visible once shown.
@@ -292,6 +295,9 @@ export const storeScreen: Screen = {
         sign.classList.add('hint-consumed');
         displayCol.classList.add('revealed');
         continueBtn.classList.add('shown');
+        // Move focus from the hat to the new primary action so
+        // Enter/Space activates [ continue ] without a Tab.
+        continueBtn.focus({ preventScroll: true });
       }
     };
 
@@ -311,6 +317,11 @@ export const storeScreen: Screen = {
     const onTapSign = () => {
       if (beat !== 3) return;
       signed = true;
+      playCelebrate();
+      // The sign button is about to be hidden; drop focus off it
+      // so the next Enter/Space lands on the dialogue keydown
+      // handler instead of replaying the now-dead button.
+      accept.blur();
       contract.classList.remove('shown');
 
       // Turn the persistent INSUFFICIENT FUNDS red flash into a
@@ -338,6 +349,9 @@ export const storeScreen: Screen = {
       beat = 2;
       stage.classList.add('rich-entered');
       continueBtn.classList.remove('shown');
+      // Same reason as onTapSign — drop focus so subsequent
+      // Enter/Space hits the dialogue advance, not the dead btn.
+      continueBtn.blur();
       dialogue.el.classList.add('shown');
       // Let the rich crow get partway into his entrance before
       // he starts talking — feels less like he's already standing
@@ -349,6 +363,9 @@ export const storeScreen: Screen = {
     };
 
     display.addEventListener('click', onTapHat);
+    // Auto-focus the hat so the player can press Enter/Space to
+    // start the sequence without ever touching the mouse.
+    display.focus({ preventScroll: true });
 
     return () => {
       if (startDelayTimer !== null) window.clearTimeout(startDelayTimer);

@@ -1,3 +1,4 @@
+import { playCelebrate, playCounterSweep, startCrowd } from '../audio';
 import { getRichCast } from '../cast';
 import { createCrow } from '../crow';
 import { createDialogue } from '../dialogue';
@@ -16,11 +17,11 @@ const NETWORK_NAME = 'Caw News Network';
 function makeNewsDialogue(company: string): readonly string[] {
   return [
     `Good evening. I'm ${REPORTER_NAME}, reporting live for ${NETWORK_NAME} — your independent voice.`,
-    "Tonight's top story: the under-crow job market has officially collapsed.",
-    `${company} reports record Q3 earnings, beating every analyst expectation.`,
-    `Analysts credit ${company}'s Robo-Crow rollout for an unprecedented productivity surge.`,
+    "Tonight's top story: under-crow riots have engulfed twelve districts. Casualties are climbing.",
+    `${company} reports record Q3 earnings, beating every analyst expectation as the looting continues unabated.`,
+    `Analysts credit ${company}'s Robo-Crow rollout for an unprecedented productivity surge — and an unprecedented surge in under-crow violence.`,
     `Food prices are up 312% year over year. ${company} has issued a statement assuring viewers that this is, quote, "fine".`,
-    'The under-crows are protesting outside our studio. We will not be covering it.',
+    'The under-crows have stormed the lobby. I can hear them breaking down the studio door. We will not be covering this.',
     'Back to you.',
   ];
 }
@@ -32,10 +33,13 @@ function makeNewsDialogue(company: string): readonly string[] {
 const MIC_SVG = `<svg viewBox="0 0 14 42" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M7 0C10.31 0 13 3.13 13 7L13 13C13 16.87 10.31 20 7 20C3.69 20 1 16.87 1 13L1 7C1 3.13 3.69 0 7 0ZM6 20L8 20L8 38L11 38L11 42L3 42L3 38L6 38Z"/><path fill="none" stroke="rgba(0,0,0,0.65)" stroke-width="0.9" stroke-linecap="round" d="M2.5 6L11.5 6M1.5 10L12.5 10M2.5 14L11.5 14"/></svg>`;
 
 const CHYRON_STRINGS: readonly string[] = [
-  'JOB MARKET COLLAPSES',
-  'UNDER-CROWS PROTEST',
+  '12 DISTRICTS ABLAZE',
+  'UNDER-CROWS RIOTING',
   'ROBO-CROW Q3 EARNINGS BEAT',
   'FOOD PRICES UP 312% Y/Y',
+  'CITY HALL OVERRUN',
+  'STATE OF EMERGENCY DECLARED',
+  'STUDIO LOBBY BREACHED',
 ];
 const CHYRON_INTERVAL_MS = 1800;
 const DIALOGUE_START_DELAY_MS = 700;
@@ -141,8 +145,12 @@ export const newsScreen: Screen = {
     let holdTimer: number | null = null;
     let finalFadeTimer: number | null = null;
     let counterRaf: number | null = null;
+    let stopSweep: (() => void) | null = null;
 
     const runCounter = (onDone: () => void) => {
+      // Rising square-wave sweep underneath the counter so the
+      // ear tracks the value climbing.
+      stopSweep = playCounterSweep(COUNTER_DURATION_MS);
       const start = performance.now();
       const tick = (now: number) => {
         const t = Math.min((now - start) / COUNTER_DURATION_MS, 1);
@@ -155,6 +163,7 @@ export const newsScreen: Screen = {
           counterRaf = window.requestAnimationFrame(tick);
         } else {
           counterRaf = null;
+          stopSweep = null;
           revealValue.textContent = formatMoney(nextBalance);
           onDone();
         }
@@ -172,8 +181,9 @@ export const newsScreen: Screen = {
         // Beat 2: reveal the centered NEST WORTH and count it up.
         reveal.classList.add('shown');
         runCounter(() => {
-          // Beat 3: brief celebratory pulse / glow.
+          // Beat 3: brief celebratory pulse / glow + arpeggio.
           reveal.classList.add('landed');
+          playCelebrate();
           holdTimer = window.setTimeout(() => {
             holdTimer = null;
             // Beat 4: fade everything out, then advance.
@@ -192,7 +202,13 @@ export const newsScreen: Screen = {
       dialogue.play(newsLines);
     }, DIALOGUE_START_DELAY_MS);
 
+    // Angry under-crow crowd ambience under the whole broadcast.
+    // Fades out cleanly when the screen unmounts.
+    const stopCrowd = startCrowd();
+
     return () => {
+      stopCrowd();
+      stopSweep?.();
       window.clearInterval(chyronTimer);
       if (startDelayTimer !== null) window.clearTimeout(startDelayTimer);
       if (fadeTimer !== null) window.clearTimeout(fadeTimer);
