@@ -73,6 +73,18 @@ export function createDialogue(opts: DialogueOptions): DialogueHandle {
   const text = document.createElement('span');
   text.classList.add('dialogue-text');
 
+  // Two child nodes: a visible portion that grows as characters
+  // stream in, and a `visibility: hidden` ghost that holds the
+  // remaining characters so the full line's wrap is reserved up
+  // front. Without the ghost, a word would start at the end of
+  // one line then jump to the next as it grows past the
+  // remaining width — making the streamed text hard to read.
+  const visibleNode = document.createTextNode('');
+  const ghost = document.createElement('span');
+  ghost.classList.add('dialogue-text-ghost');
+  ghost.setAttribute('aria-hidden', 'true');
+  text.append(visibleNode, ghost);
+
   const indicator = document.createElement('span');
   indicator.classList.add('dialogue-indicator');
   indicator.setAttribute('aria-hidden', 'true');
@@ -118,17 +130,19 @@ export function createDialogue(opts: DialogueOptions): DialogueHandle {
   const streamCurrent = () => {
     streaming = true;
     indicator.classList.remove('shown');
-    text.textContent = '';
     charIdx = 0;
     blipCounter = 0;
     const line = lines[lineIdx];
+    visibleNode.textContent = '';
+    ghost.textContent = line;
     const tick = () => {
       if (charIdx >= line.length) {
         handleLineComplete();
         return;
       }
       const ch = line[charIdx];
-      text.textContent = line.slice(0, charIdx + 1);
+      visibleNode.textContent = line.slice(0, charIdx + 1);
+      ghost.textContent = line.slice(charIdx + 1);
       if (/[a-z0-9]/i.test(ch)) {
         if (blipCounter % BLIP_EVERY_N_CHARS === 0) playBlip();
         blipCounter += 1;
@@ -141,8 +155,10 @@ export function createDialogue(opts: DialogueOptions): DialogueHandle {
 
   const finishCurrent = () => {
     clearStream();
-    text.textContent = lines[lineIdx];
-    charIdx = lines[lineIdx].length;
+    const line = lines[lineIdx];
+    visibleNode.textContent = line;
+    ghost.textContent = '';
+    charIdx = line.length;
     handleLineComplete();
   };
 

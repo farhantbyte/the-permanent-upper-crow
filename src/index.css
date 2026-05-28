@@ -764,6 +764,10 @@
   min-height: calc(0.9rem * 1.5 * 4);
 }
 
+.dialogue-text-ghost {
+  visibility: hidden;
+}
+
 .dialogue-indicator {
   display: inline-block;
   margin-left: 0.4rem;
