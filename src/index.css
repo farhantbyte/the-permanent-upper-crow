@@ -378,6 +378,33 @@
   line-height: 1;
 }
 
+/* HN score slot — collapsed (0fr) until the fetch resolves, then
+ * eases out to 1fr (its natural content width). Animating
+ * grid-template-columns is the only way to transition to
+ * width:auto without measuring in JS. Inner span carries the
+ * digits + separator and gets clipped while collapsed. The whole
+ * right-anchored corner stack slides left in sync as the chip
+ * grows, so the motion reads as one intentional reveal rather
+ * than a layout snap. */
+.btn-hn-score {
+  display: inline-grid;
+  grid-template-columns: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-columns 600ms ease-out,
+    opacity 500ms ease-out 100ms;
+  font-variant-numeric: tabular-nums;
+}
+.btn-hn-score > span {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.btn-hn-score.revealed {
+  grid-template-columns: 1fr;
+  opacity: 1;
+}
+
 /* Toast that appears under the corner stack when the cawfee chip
  * is tapped. Red palette + denied thud so it reads as rejection
  * — same visual grammar as the INSUFFICIENT FUNDS flash. Pinned

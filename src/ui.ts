@@ -121,7 +121,33 @@ export function createHackerNewsLink(href: string): HTMLAnchorElement {
     'aria-label',
     'upvote this game on Hacker News in a new tab',
   );
-  link.innerHTML = `${ICON_UPVOTE}<span class="btn-hn-label">upvote on HN</span>`;
+  const label = document.createElement('span');
+  label.classList.add('btn-hn-label');
+  // The score slot uses the grid 0fr → 1fr trick so its width can
+  // animate from 0 to its natural content size when the HN fetch
+  // resolves. The whole right-anchored corner cluster then slides
+  // left smoothly instead of snap-shifting.
+  const score = document.createElement('span');
+  score.classList.add('btn-hn-score');
+  const scoreInner = document.createElement('span');
+  score.appendChild(scoreInner);
+  label.appendChild(score);
+  label.appendChild(document.createTextNode('upvote on HN'));
+  link.innerHTML = ICON_UPVOTE;
+  link.appendChild(label);
+
+  const itemId = new URL(href).searchParams.get('id');
+  if (itemId) {
+    fetch(`https://hacker-news.firebaseio.com/v0/item/${itemId}.json`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((item: { score?: number } | null) => {
+        if (typeof item?.score !== 'number') return;
+        scoreInner.textContent = `${item.score} · `;
+        requestAnimationFrame(() => score.classList.add('revealed'));
+      })
+      .catch(() => {});
+  }
+
   return link;
 }
 
