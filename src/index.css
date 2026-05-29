@@ -1976,6 +1976,30 @@
   max-width: 28rem;
 }
 
+/*--- The Language select btn --------------------------------------- */
+
+select.btn-corner
+{ 
+    line-height: inherit;
+    font-size: 10px;
+    font-weight: 600;
+    font-family: unset;
+}
+
+/* ── rtl ──────────────────────────────────────────────── */
+
+.rtl
+{
+    direction: rtl;
+    text-align: right;
+}
+
+.insufficient-flash.rtl .insufficient-main,
+.insufficient-flash.rtl .insufficient-sub
+{
+    text-align: center;
+}
+
 /* ── Reduced motion ──────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
