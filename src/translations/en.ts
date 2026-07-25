@@ -122,7 +122,7 @@ export const en = {
       congratulations: 'CONGRATULATIONS ON <span class="insufficient-aside">(FUTURE YOU)</span> BEING RICH',
       pleaseHelp: 'PLEASE HELP',
       contractEyebrow: 'EMPLOYMENT AGREEMENT',
-      contractTerms: (company: string, product: string) => [
+      contractTerms: (product: string) => [
         `Dedicate all labor, judgment, and waking hours to the development of ${product}.`,
         'Maintain a 12/12/7 in-office presence at our San Franchickso headquarters.',
         'Receive complimentary lunch and dinner on premises (mandatory).',

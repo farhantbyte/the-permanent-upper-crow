@@ -17,81 +17,11 @@ const HAT_SVG = `<svg viewBox="0 0 30 24" xmlns="http://www.w3.org/2000/svg" ari
 // as the crow's feet. One continuous silhouette.
 const TABLE_SVG = `<svg viewBox="0 0 70 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M5 0L65 0L65 6L60 6L60 32L56 32L56 6L14 6L14 32L10 32L10 6L5 6Z"/></svg>`;
 
-// Benjamin Peck and his successors all deliver the same template
-// pitch in proper sentence case — the stilted-formal grammar is
-// the marker of corporate persona; every other voice in the game
-// stays lowercase.
-function makeRichDialogue({
-  name,
-  company,
-  product,
-}: {
-  name: string;
-  company: string;
-  product: string;
-}): readonly string[] {
-  return [
-    `Why hello there! I'm ${name}, Founder and CEO of ${company}.`,
-    "It seems you're having... some trouble with that purchase.",
-    'What if I told you you could earn generational wealth with just a few years of hard work?',
-    `At ${company}, we produce the ${product}. It is an autonomous robot that automates all labor in the e-kaw-nomy.`,
-    'You would be wise to decide soon. We are running out of time before you become stuck with the under-crows.',
-    'Equity in our venerable operation is anything but abundant.',
-  ];
-}
-
-// Spoken by the rich crow after the player signs the contract.
-// Same proper-sentence-case voice. Final tap advances to the
-// next screen.
-const POST_SIGN_DIALOGUE: readonly string[] = [
-  "Congratulations! I knew you weren't incompetent!",
-  'Cheers to a future of hard working fortune, and fortunate hard work.',
-  'See you in the office on Sunday my love.',
-];
-
-// First-person internal monologue surfaced when the player taps
-// [ decline ]. Each tap cycles to the next reminder of why the
-// player can't actually walk away. List loops forever — there is
-// no version of saying no that ends.
-const DECLINE_THOUGHTS: readonly string[] = [
-  'rent is due next month.',
-  'the perch payments are three months behind.',
-  'groceries. just groceries.',
-  'the under-crow loan shark is calling again.',
-  'my fledgling cousin needs braces.',
-  'my egg insurance lapsed last week.',
-  "the nest down payment isn't going to save itself.",
-  'mama crow is in the hospital remember.',
-  'i told my sister i would help pay for her kaw school fees.',
-  'the chickadee i borrowed from is calling. again.',
-];
-
 // Subtext that appears under INSUFFICIENT FUNDS once the player
 // has tapped the hat enough times to count as bargaining. Indexed
 // by (clickCount - HAT_CLICK_SUBTEXT_AT) modulo the list length —
 // loops indefinitely so the snark never runs out.
 const HAT_CLICK_SUBTEXT_AT = 3;
-const HAT_CLICK_SUBTEXT: readonly string[] = [
-  "you've already maxed out your crow card.",
-  'tapping it harder will not lower the price.',
-  'you are cuckoo to keep trying.',
-  'have you considered that you simply cannot afford this hat?',
-  'the hat does not feel sorry for you.',
-  'this is not a wishlist.',
-  'you cannot wing this purchase.',
-  'you could buy 0.1 of this hat. that is a brim.',
-  'even the table is judging you now.',
-  "try marrying into the rich crow's family.",
-  'stream your tapping on twitch. ask for tips.',
-  'the fledgling support program is for actual fledglings.',
-  "you've been pecking at this for too long.",
-  "ruffled feathers won't budge the price.",
-  'no one is impressed by your persistence.',
-  'no girlfriend to even split the cost with.',
-  'your broke ass gets no finches.',
-  'have you considered onlybirds?',
-];
-
 const CONFETTI_COUNT = 26;
 const CONFETTI_COLORS = ['#ffffff', '#4ade80', '#ffd166'];
 
@@ -207,7 +137,7 @@ export const storeScreen: Screen = {
         <div class="contract-body">
           <p>${t().store.ui.contractIntro(cast.company)}</p>
           <ol class="contract-terms">
-            ${t().store.ui.contractTerms(cast.company, cast.product).map((term) => `<li>${term}</li>`).join('')}
+            ${t().store.ui.contractTerms(cast.product).map((term) => `<li>${term}</li>`).join('')}
           </ol>
           <div class="contract-signatures">
             <div class="contract-sig">
