@@ -4,6 +4,7 @@ import { createCrow, popHeart, winkRich } from '../crow';
 import { createDialogue } from '../dialogue';
 import { deriveLoopValues } from '../state';
 import { createHud, createPrimaryButton, formatMoney } from '../ui';
+import { t } from '../translations';
 import type { Screen } from './types';
 
 // Standalone top hat. Crown 14 wide × 20 tall, flat brim 24 wide
@@ -16,81 +17,11 @@ const HAT_SVG = `<svg viewBox="0 0 30 24" xmlns="http://www.w3.org/2000/svg" ari
 // as the crow's feet. One continuous silhouette.
 const TABLE_SVG = `<svg viewBox="0 0 70 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M5 0L65 0L65 6L60 6L60 32L56 32L56 6L14 6L14 32L10 32L10 6L5 6Z"/></svg>`;
 
-// Benjamin Peck and his successors all deliver the same template
-// pitch in proper sentence case — the stilted-formal grammar is
-// the marker of corporate persona; every other voice in the game
-// stays lowercase.
-function makeRichDialogue({
-  name,
-  company,
-  product,
-}: {
-  name: string;
-  company: string;
-  product: string;
-}): readonly string[] {
-  return [
-    `Why hello there! I'm ${name}, Founder and CEO of ${company}.`,
-    "It seems you're having... some trouble with that purchase.",
-    'What if I told you you could earn generational wealth with just a few years of hard work?',
-    `At ${company}, we produce the ${product}. It is an autonomous robot that automates all labor in the e-kaw-nomy.`,
-    'You would be wise to decide soon. We are running out of time before you become stuck with the under-crows.',
-    'Equity in our venerable operation is anything but abundant.',
-  ];
-}
-
-// Spoken by the rich crow after the player signs the contract.
-// Same proper-sentence-case voice. Final tap advances to the
-// next screen.
-const POST_SIGN_DIALOGUE: readonly string[] = [
-  "Congratulations! I knew you weren't incompetent!",
-  'Cheers to a future of hard working fortune, and fortunate hard work.',
-  'See you in the office on Sunday my love.',
-];
-
-// First-person internal monologue surfaced when the player taps
-// [ decline ]. Each tap cycles to the next reminder of why the
-// player can't actually walk away. List loops forever — there is
-// no version of saying no that ends.
-const DECLINE_THOUGHTS: readonly string[] = [
-  'rent is due next month.',
-  'the perch payments are three months behind.',
-  'groceries. just groceries.',
-  'the under-crow loan shark is calling again.',
-  'my fledgling cousin needs braces.',
-  'my egg insurance lapsed last week.',
-  "the nest down payment isn't going to save itself.",
-  'mama crow is in the hospital remember.',
-  'i told my sister i would help pay for her kaw school fees.',
-  'the chickadee i borrowed from is calling. again.',
-];
-
 // Subtext that appears under INSUFFICIENT FUNDS once the player
 // has tapped the hat enough times to count as bargaining. Indexed
 // by (clickCount - HAT_CLICK_SUBTEXT_AT) modulo the list length —
 // loops indefinitely so the snark never runs out.
 const HAT_CLICK_SUBTEXT_AT = 3;
-const HAT_CLICK_SUBTEXT: readonly string[] = [
-  "you've already maxed out your crow card.",
-  'tapping it harder will not lower the price.',
-  'you are cuckoo to keep trying.',
-  'have you considered that you simply cannot afford this hat?',
-  'the hat does not feel sorry for you.',
-  'this is not a wishlist.',
-  'you cannot wing this purchase.',
-  'you could buy 0.1 of this hat. that is a brim.',
-  'even the table is judging you now.',
-  "try marrying into the rich crow's family.",
-  'stream your tapping on twitch. ask for tips.',
-  'the fledgling support program is for actual fledglings.',
-  "you've been pecking at this for too long.",
-  "ruffled feathers won't budge the price.",
-  'no one is impressed by your persistence.',
-  'no girlfriend to even split the cost with.',
-  'your broke ass gets no finches.',
-  'have you considered onlybirds?',
-];
-
 const CONFETTI_COUNT = 26;
 const CONFETTI_COLORS = ['#ffffff', '#4ade80', '#ffd166'];
 
@@ -116,7 +47,7 @@ export const storeScreen: Screen = {
   mount(host, ctx) {
     const { balance, hatPrice } = deriveLoopValues(ctx.state.loop);
     const cast = getRichCast(ctx.state.loop);
-    const richLines = makeRichDialogue(cast);
+    const richLines = t().store.richLines(cast.name, cast.company, cast.product);
 
     const root = document.createElement('div');
     root.classList.add('screen', 'screen-store');
@@ -152,8 +83,8 @@ export const storeScreen: Screen = {
     const sign = document.createElement('div');
     sign.classList.add('store-sign');
     sign.innerHTML = `
-      <span class="store-sign-main">TOP HAT FOR SALE: ${formatMoney(hatPrice)}</span>
-      <span class="store-sign-hint">↓ <span class="hint-action"></span> to buy</span>
+      <span class="store-sign-main">${t().store.ui.hatForSale}: ${formatMoney(hatPrice)}</span>
+      <span class="store-sign-hint">↓ <span class="hint-action"></span> ${t().store.ui.toBuy}</span>
     `;
 
     displayCol.append(sign, display);
@@ -168,7 +99,7 @@ export const storeScreen: Screen = {
     flash.classList.add('insufficient-flash');
     flash.setAttribute('aria-live', 'polite');
     flash.innerHTML = `
-      <div class="insufficient-main">INSUFFICIENT FUNDS.</div>
+      <div class="insufficient-main">${t().store.ui.insufficientFunds}</div>
       <div class="insufficient-sub"></div>
     `;
     const flashMain = flash.querySelector<HTMLDivElement>('.insufficient-main')!;
@@ -184,7 +115,7 @@ export const storeScreen: Screen = {
     const cta = document.createElement('div');
     cta.classList.add('cta-wrap');
 
-    const continueBtn = createPrimaryButton('continue', () => onTapContinue());
+    const continueBtn = createPrimaryButton(t().store.ui.btnContinue, () => onTapContinue());
     continueBtn.classList.add('reveal');
 
     cta.append(continueBtn);
@@ -200,23 +131,18 @@ export const storeScreen: Screen = {
     contract.innerHTML = `
       <div class="contract-card">
         <div class="contract-header">
-          <div class="contract-eyebrow">EMPLOYMENT AGREEMENT</div>
+          <div class="contract-eyebrow">${t().store.ui.contractEyebrow}</div>
           <div class="contract-title" id="contract-title">${cast.company}</div>
         </div>
         <div class="contract-body">
-          <p>The undersigned ("Employee") agrees to the following terms with ${cast.company} (the "Company"):</p>
+          <p>${t().store.ui.contractIntro(cast.company)}</p>
           <ol class="contract-terms">
-            <li>Dedicate all labor, judgment, and waking hours to the development of ${cast.product}.</li>
-            <li>Maintain a 12/12/7 in-office presence at our San Franchickso headquarters.</li>
-            <li>Receive complimentary lunch and dinner on premises (mandatory).</li>
-            <li>Acknowledge that the window is closing.</li>
-            <li>Accept 1% equity in the Company, which the Company affirms is anything but abundant.</li>
-            <li>Forfeit the right to wonder if there was another way.</li>
+            ${t().store.ui.contractTerms(cast.product).map((term) => `<li>${term}</li>`).join('')}
           </ol>
           <div class="contract-signatures">
             <div class="contract-sig">
               <div class="contract-sig-line"></div>
-              <div class="contract-sig-label">Employee</div>
+              <div class="contract-sig-label">${t().store.ui.employeeLabel}</div>
             </div>
             <div class="contract-sig">
               <div class="contract-sig-line"></div>
@@ -231,8 +157,8 @@ export const storeScreen: Screen = {
 
     const contractActions = document.createElement('div');
     contractActions.classList.add('contract-actions');
-    const decline = createPrimaryButton('decline', () => onTapDecline());
-    const accept = createPrimaryButton('sign', () => onTapSign());
+    const decline = createPrimaryButton(t().store.ui.btnDecline, () => onTapDecline());
+    const accept = createPrimaryButton(t().store.ui.btnSign, () => onTapSign());
     contractActions.append(decline, accept);
 
     const contractThought = document.createElement('div');
@@ -244,8 +170,7 @@ export const storeScreen: Screen = {
     // legal footer.
     const finePrint = document.createElement('p');
     finePrint.classList.add('contract-fine-print');
-    finePrint.textContent =
-      '§47B. Arbitration. By signing, the Employee waives all rights to legal recourse and agrees to a 7-loop binding arbitration cycle with no recorded arbitrator. The arbitrator is a crow. The arbitrator is unavailable. This section is unenforceable in any jurisdiction where it has been read.';
+    finePrint.textContent = t().store.ui.finePrint;
 
     contractCard.append(contractActions, contractThought, finePrint);
 
@@ -270,8 +195,8 @@ export const storeScreen: Screen = {
     const onTapDecline = () => {
       declineClicks += 1;
       playDenied();
-      const idx = (declineClicks - 1) % DECLINE_THOUGHTS.length;
-      contractThought.textContent = DECLINE_THOUGHTS[idx];
+      const idx = (declineClicks - 1) % t().store.declineThoughts.length;
+      contractThought.textContent = t().store.declineThoughts[idx];
       contractThought.classList.add('shown');
     };
 
@@ -287,8 +212,8 @@ export const storeScreen: Screen = {
 
       if (hatClicks >= HAT_CLICK_SUBTEXT_AT) {
         const idx =
-          (hatClicks - HAT_CLICK_SUBTEXT_AT) % HAT_CLICK_SUBTEXT.length;
-        flashSub.textContent = HAT_CLICK_SUBTEXT[idx];
+          (hatClicks - HAT_CLICK_SUBTEXT_AT) % t().store.hatSubtext.length;
+        flashSub.textContent = t().store.hatSubtext[idx];
         flashSub.classList.add('shown');
       }
 
@@ -343,8 +268,7 @@ export const storeScreen: Screen = {
       // green "CONGRATULATIONS ON (FUTURE YOU) BEING RICH" banner.
       // The "(FUTURE YOU)" parenthetical is muted to underscore the
       // satire — you're not rich now, that's for some other you.
-      flashMain.innerHTML =
-        'CONGRATULATIONS ON <span class="insufficient-aside">(FUTURE YOU)</span> BEING RICH';
+      flashMain.innerHTML = t().store.ui.congratulations;
       flashSub.classList.remove('shown');
       flash.classList.add('success');
       spawnConfetti(flash);
@@ -355,7 +279,7 @@ export const storeScreen: Screen = {
       beat = 2;
       startDelayTimer = window.setTimeout(() => {
         startDelayTimer = null;
-        dialogue.play(POST_SIGN_DIALOGUE);
+        dialogue.play(t().store.postSignLines);
       }, 450);
     };
 

@@ -2,31 +2,8 @@ import { createCrow } from '../crow';
 import { createDialogue } from '../dialogue';
 import { deriveLoopValues } from '../state';
 import { createHud } from '../ui';
+import { t } from '../translations';
 import type { Screen } from './types';
-
-// The arrival beat. We have just escaped the home planet on the
-// SpaceKAW. The player crow stands alone on the new planet,
-// freshly rich, and adopts the rich crow's proper-sentence-case
-// voice for the first time in the game — the marker that he has
-// joined the upper class.
-//
-// The HUD shows the post-launch balance (`deriveLoopValues(loop +
-// 1).balance`) — the windfall, not the loop he just played.
-//
-// After the dialogue, the crow walks off the right side of the
-// scene, the whole view fades to black, and the next mount lands
-// us back at the hat shop with the loop incremented and the
-// numbers ×100. The recursion is meant to feel hallucinatory:
-// you "earned" peace on a new planet, and the first thing you
-// do is walk back into the same shop.
-
-const PLAYER_SPEAKER = 'YOU';
-
-const ARRIVAL_LINES: readonly string[] = [
-  'Finally... I can enjoy my wealth.',
-  '...',
-  'I should probably buy some new clothes...',
-];
 
 const STAR_COUNT = 38;
 
@@ -81,7 +58,7 @@ export const arrivalScreen: Screen = {
 
     stage.append(stars, crowWrap);
 
-    const dialogue = createDialogue({ speaker: PLAYER_SPEAKER });
+    const dialogue = createDialogue({ speaker: t().store.speaker });
     dialogue.el.classList.add('shown');
 
     // Full-screen veil that fades in once the crow starts walking.
@@ -120,7 +97,7 @@ export const arrivalScreen: Screen = {
     );
     startTimer = window.setTimeout(() => {
       startTimer = null;
-      dialogue.play(ARRIVAL_LINES);
+      dialogue.play(t().arrival.lines);
     }, dialogueStartMs);
 
     // CSS variables consumed by the keyframes / transitions in

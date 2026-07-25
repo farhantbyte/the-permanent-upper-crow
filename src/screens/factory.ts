@@ -4,26 +4,8 @@ import { createCrow, popHeart, winkRich } from '../crow';
 import { createDialogue } from '../dialogue';
 import { deriveLoopValues } from '../state';
 import { createHud, createPrimaryButton } from '../ui';
+import { t } from '../translations';
 import type { Screen } from './types';
-
-const FACTORY_DIALOGUE: readonly string[] = [
-  'KAWKAWKAWKAWKAW! KAWKAW! KAWKAWKAWKAWKAWKAW!!!',
-  'We are so back.',
-  'I can smell our investors gawking at these Q2 profits.',
-  'Our next quarter will crush those damn Eagles.',
-  'Great work! I knew you had the grit in you.',
-  "I'm looking forward to enjoying my— I mean our fortune very soon in our initial public offering.",
-  'See you in the office Sunday morning dear.',
-];
-
-// Comically vague disclaimers shown when the player taps the
-// caution badge on the machine. The point is "if you read this,
-// you'd never sign" — except, of course, you already signed.
-const WARNING_DISCLAIMERS: readonly string[] = [
-  'May contain trace amounts of crow.',
-  'Do not operate while sleeping. Or awake.',
-  'Safety lawsuits are subject to a 7-loop arbitration clause buried in section 47B of the employment agreement you already signed.',
-];
 
 // Each slot is one robo plus the per-item right-margin. Keep in
 // sync with .factory-robo's width + margin-right in index.css.
@@ -141,10 +123,10 @@ export const factoryScreen: Screen = {
       <div class="warning-card">
         <div class="warning-header">
           <span class="warning-icon" aria-hidden="true">⚠</span>
-          <span class="warning-title" id="warning-title">WARNING</span>
+          <span class="warning-title" id="warning-title">${t().store.ui.warningTitle}</span>
         </div>
         <ul class="warning-list">
-          ${WARNING_DISCLAIMERS.map((d) => `<li>${d}</li>`).join('')}
+          ${t().factory.warnings.map((d) => `<li>${d}</li>`).join('')}
         </ul>
       </div>
     `;
@@ -191,7 +173,7 @@ export const factoryScreen: Screen = {
     });
 
     const startDelayTimer = window.setTimeout(() => {
-      dialogue.play(FACTORY_DIALOGUE);
+      dialogue.play(t().factory.lines);
     }, DIALOGUE_START_DELAY_MS);
 
     // Easter egg: rare normal (non-robo) crow rides the conveyor
@@ -206,7 +188,7 @@ export const factoryScreen: Screen = {
 
       const bubble = document.createElement('span');
       bubble.classList.add('please-help-bubble');
-      bubble.textContent = 'PLEASE HELP';
+      bubble.textContent = t().exti.pleaseHelp;
 
       const crow = createCrow('player');
       crow.classList.add('please-help-crow');

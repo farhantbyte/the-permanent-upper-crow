@@ -1,4 +1,5 @@
 import { isMuted, onMuteChange, toggleMute } from './audio';
+import { t } from './translations'
 
 export interface HudOptions {
   balance: number;
@@ -16,7 +17,7 @@ export function createHud({ balance }: HudOptions): HTMLElement {
 
   const labelEl = document.createElement('span');
   labelEl.classList.add('hud-label');
-  labelEl.textContent = 'NEST WORTH:';
+  labelEl.textContent = t().news.nestWorth;
 
   const balanceEl = document.createElement('span');
   balanceEl.classList.add('hud-balance');
@@ -121,33 +122,7 @@ export function createHackerNewsLink(href: string): HTMLAnchorElement {
     'aria-label',
     'upvote this game on Hacker News in a new tab',
   );
-  const label = document.createElement('span');
-  label.classList.add('btn-hn-label');
-  // The score slot uses the grid 0fr → 1fr trick so its width can
-  // animate from 0 to its natural content size when the HN fetch
-  // resolves. The whole right-anchored corner cluster then slides
-  // left smoothly instead of snap-shifting.
-  const score = document.createElement('span');
-  score.classList.add('btn-hn-score');
-  const scoreInner = document.createElement('span');
-  score.appendChild(scoreInner);
-  label.appendChild(score);
-  label.appendChild(document.createTextNode('upvote on HN'));
-  link.innerHTML = ICON_UPVOTE;
-  link.appendChild(label);
-
-  const itemId = new URL(href).searchParams.get('id');
-  if (itemId) {
-    fetch(`https://hacker-news.firebaseio.com/v0/item/${itemId}.json`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((item: { score?: number } | null) => {
-        if (typeof item?.score !== 'number') return;
-        scoreInner.textContent = `${item.score} · `;
-        requestAnimationFrame(() => score.classList.add('revealed'));
-      })
-      .catch(() => {});
-  }
-
+  link.innerHTML = `${ICON_UPVOTE}<span class="btn-hn-label">upvote on HN</span>`;
   return link;
 }
 
@@ -160,8 +135,8 @@ export function createCawfeeButton(onClick: () => void): HTMLButtonElement {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.classList.add('btn-corner', 'btn-cawfee');
-  btn.setAttribute('aria-label', 'buy me a cawfee');
-  btn.innerHTML = `${ICON_CAWFEE}<span class="btn-cawfee-label">buy me a cawfee</span>`;
+  btn.setAttribute('aria-label', t().exti.cawfeeBtn);
+  btn.innerHTML = `${ICON_CAWFEE}<span class="btn-cawfee-label">${t().exti.cawfeeBtn}</span>`;
   btn.addEventListener('click', onClick);
   return btn;
 }

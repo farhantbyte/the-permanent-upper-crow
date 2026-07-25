@@ -378,44 +378,16 @@
   line-height: 1;
 }
 
-/* HN score slot — collapsed (0fr) until the fetch resolves, then
- * eases out to 1fr (its natural content width). Animating
- * grid-template-columns is the only way to transition to
- * width:auto without measuring in JS. Inner span carries the
- * digits + separator and gets clipped while collapsed. The whole
- * right-anchored corner stack slides left in sync as the chip
- * grows, so the motion reads as one intentional reveal rather
- * than a layout snap. */
-.btn-hn-score {
-  display: inline-grid;
-  grid-template-columns: 0fr;
-  opacity: 0;
-  transition:
-    grid-template-columns 600ms ease-out,
-    opacity 500ms ease-out 100ms;
-  font-variant-numeric: tabular-nums;
-}
-.btn-hn-score > span {
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-}
-.btn-hn-score.revealed {
-  grid-template-columns: 1fr;
-  opacity: 1;
-}
-
 /* Toast that appears under the corner stack when the cawfee chip
  * is tapped. Red palette + denied thud so it reads as rejection
  * — same visual grammar as the INSUFFICIENT FUNDS flash. Pinned
- * to the right under the safe-area inset; z-index sits above the
- * corner stack so when the chips wrap onto a second row on narrow
- * viewports, the toast paints over them instead of getting clipped. */
+ * to the right under the safe-area inset; z-index keeps it just
+ * below the corner stack so it never visually overlaps the chips. */
 .cawfee-toast {
   position: fixed;
   top: calc(env(safe-area-inset-top, 0px) + 3.1rem);
   right: calc(env(safe-area-inset-right, 0px) + 0.6rem);
-  z-index: 61;
+  z-index: 59;
   max-width: min(26rem, calc(100vw - 1.2rem));
   padding: 0.55rem 0.75rem;
   font-family: var(--font-pixel);
@@ -475,24 +447,6 @@
 @media (max-width: 720px) {
   .hud-wrap {
     margin-top: calc(env(safe-area-inset-top, 0px) + 3.25rem);
-  }
-  /* Park the cawfee chip on its own row so the HN chip's reveal
-   * animation can grow on the top row without bumping a chip
-   * across a wrap boundary mid-transition. order:1 demotes it to
-   * the end of the flex sequence; flex-basis:100% forces a line
-   * break before it. The other (icon-only) chips share the top
-   * row with HN, where the score's added width is comfortable. */
-  .corner-stack .btn-cawfee {
-    order: 1;
-    flex-basis: 100%;
-    max-width: max-content;
-  }
-  /* Cawfee toast normally sits just under the single-row corner
-   * stack. On mobile the stack is two rows (HN+icons on top,
-   * cawfee alone below), so drop the toast another row-height
-   * down so it appears below cawfee instead of painting over it. */
-  .cawfee-toast {
-    top: calc(env(safe-area-inset-top, 0px) + 5rem);
   }
 }
 
@@ -931,9 +885,7 @@
 .contract-overlay {
   position: fixed;
   inset: 0;
-  /* Sits above the corner stack (60) and cawfee toast (61) so the
-   * agreement modal isn't pierced by the top-right chips. */
-  z-index: 70;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2022,6 +1974,30 @@
   text-align: center;
   padding: 0 1.5rem;
   max-width: 28rem;
+}
+
+/*--- The Language select btn --------------------------------------- */
+
+select.btn-corner
+{ 
+    line-height: inherit;
+    font-size: 10px;
+    font-weight: 600;
+    font-family: unset;
+}
+
+/* ── rtl ──────────────────────────────────────────────── */
+
+.rtl
+{
+    direction: rtl;
+    text-align: right;
+}
+
+.insufficient-flash.rtl .insufficient-main,
+.insufficient-flash.rtl .insufficient-sub
+{
+    text-align: center;
 }
 
 /* ── Reduced motion ──────────────────────────────────────────────── */

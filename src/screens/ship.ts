@@ -1,25 +1,7 @@
 import { startSpaceship } from '../audio';
 import { createDialogue } from '../dialogue';
+import { t } from '../translations';
 import type { Screen } from './types';
-
-// FPV: we are a passenger crow staring out the porthole of the
-// SpaceKAW as the upper-crow class evacuates to a new planet. The
-// captain narrates over the PA in proper sentence case (same
-// businesscrow cadence the rest of the cast uses). The under-crows
-// "could not afford the ticket" is the screen's punchline — the
-// abandonment beat lands here, in a captain's polite voice.
-const CAPTAIN_SPEAKER = 'THE CAPTAIN';
-
-const CAPTAIN_LINES: readonly string[] = [
-  'Good evening passengers. This is your Captain, speaking from the deck of the SpaceKAW.',
-  'We have officially cleared the home planet. You may now look out your window.',
-  'On board this vessel is the entire permanent upper-crow class.',
-  'The uncivilized violent under-crows could not follow us.',
-  'Our destination is a fresh, untouched planet. There, we will finally live in peace.',
-  'We will be arriving shortly...',
-  'We earned this.',
-  '...',
-];
 
 // Visual budget — kept low because all of these are absolutely
 // positioned divs animating opacity/transform.
@@ -99,7 +81,7 @@ export const shipScreen: Screen = {
     const hud = document.createElement('div');
     hud.classList.add('ship-hud');
     hud.innerHTML = `
-      <span class="ship-hud-label">SPACEKAW · FLT 001 → NEW CAW-NAAN</span>
+      <span class="ship-hud-label">${t().ship.hudLabel}</span>
       <span class="ship-hud-corner ship-hud-tl" aria-hidden="true"></span>
       <span class="ship-hud-corner ship-hud-tr" aria-hidden="true"></span>
       <span class="ship-hud-corner ship-hud-bl" aria-hidden="true"></span>
@@ -110,7 +92,7 @@ export const shipScreen: Screen = {
     portWrap.appendChild(portInner);
     cabin.appendChild(portWrap);
 
-    const dialogue = createDialogue({ speaker: CAPTAIN_SPEAKER });
+    const dialogue = createDialogue({ speaker: t().ship.speaker });
     dialogue.el.classList.add('shown');
 
     // Local veil that closes over the cabin when the captain
@@ -136,7 +118,7 @@ export const shipScreen: Screen = {
     root.style.setProperty('--ship-fade', `${FADE_OUT_DURATION_MS}ms`);
 
     const startTimer = window.setTimeout(() => {
-      dialogue.play(CAPTAIN_LINES);
+      dialogue.play(t().ship.lines);
     }, DIALOGUE_START_DELAY_MS);
 
     // Spaceship interior ambience under the captain's address.

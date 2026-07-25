@@ -1,4 +1,4 @@
-# The Permanent Upper Crow
+# The Permanent Upper Crow (نسخه ای با سیستم ترجمه ) persian added
 
 ![Top hat for sale](docs/screenshots/top-hat-for-sale.png)
 

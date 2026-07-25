@@ -1,5 +1,6 @@
 import './index.css';
 import { playDenied, unlockAudio } from './audio';
+import { setLanguage, getLanguage, availableLanguages, applyDirection, t, type Language } from './translations';
 import { deriveLoopValues, loadLoop, saveLoop, type GameState } from './state';
 import type { GameContext, Screen } from './screens/types';
 import { storeScreen } from './screens/store';
@@ -150,7 +151,7 @@ function mount(idx: number): void {
     // until the veil is fully gone — otherwise voice blips fire
     // under the black and the player can hear text they can't
     // yet read.
-    spawnInterstitial('On the new planet...');
+    spawnInterstitial(t().exti.interstitial);
     entryDelayMs = INTERSTITIAL_HOLD_MS + INTERSTITIAL_FADE_MS;
   }
   const next = screens[idx];
@@ -167,6 +168,7 @@ function mount(idx: number): void {
     entryDelayMs,
   };
   cleanup = next.mount(app!, ctx);
+  applyDirection();
 }
 
 // Persistent corner controls. Stacked together in a single
@@ -201,10 +203,9 @@ function showCawfeeToast(): void {
   if (!cawfeeToast) {
     cawfeeToast = document.createElement('div');
     cawfeeToast.classList.add('cawfee-toast');
-    cawfeeToast.textContent =
-      'you are too broke to be helping others right now';
     document.body.appendChild(cawfeeToast);
   }
+  cawfeeToast.textContent = t().exti.cawfeeToast;
   if (cawfeeToastTimer !== null) window.clearTimeout(cawfeeToastTimer);
   // Restart the fade-in transition on repeat taps.
   cawfeeToast.classList.remove('shown');
@@ -220,10 +221,10 @@ const cawfeeBtn = createCawfeeButton(() => {
   showCawfeeToast();
   playDenied();
 });
+cornerStack.appendChild(cawfeeBtn);
 cornerStack.appendChild(
   createHackerNewsLink('https://news.ycombinator.com/item?id=48310280'),
 );
-cornerStack.appendChild(cawfeeBtn);
 cornerStack.appendChild(
   createWebsiteLink(
     'https://www.jasonwu.ink/signals/2026-05-27-permanent-upper-class?theme=dark',
@@ -232,6 +233,25 @@ cornerStack.appendChild(
 cornerStack.appendChild(
   createGithubLink('https://github.com/wu-json/the-permanent-upper-crow'),
 );
+// nothing special to comment... KAWW, KAWWW
+const langSelect = document.createElement('select');
+langSelect.classList.add('btn-corner');
+langSelect.classList.add('corner-btn'); // KAWW, KAWW
+langSelect.setAttribute('aria-label', 'Select language');
+availableLanguages.forEach((lang) => {
+  const option = document.createElement('option');
+  option.value = lang;
+  option.textContent = lang.toUpperCase();
+  option.selected = lang === getLanguage();
+  langSelect.appendChild(option);
+});
+langSelect.addEventListener('change', () => {
+  setLanguage(langSelect.value as Language);
+  mount(currentIdx);
+  applyDirection();
+});
+cornerStack.appendChild(langSelect);
+
 cornerStack.appendChild(createMuteButton());
 document.body.appendChild(cornerStack);
 
